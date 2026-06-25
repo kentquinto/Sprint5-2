@@ -21,7 +21,11 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const res = await api.post('/login', form)
-      login(res.data.token, res.data.user)
+      const token = res.data.token
+      const meRes = await api.get('/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      login(token, meRes.data.data ?? meRes.data)
       navigate('/')
     } catch (err) {
       setError(err.response?.data?.message ?? 'Login failed. Check your credentials.')

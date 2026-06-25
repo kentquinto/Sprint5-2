@@ -26,7 +26,11 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       const res = await api.post('/register', form)
-      login(res.data.token, res.data.user)
+      const token = res.data.token
+      const meRes = await api.get('/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      login(token, meRes.data.data ?? meRes.data)
       navigate('/')
     } catch (err) {
       if (err.response?.status === 422) {
