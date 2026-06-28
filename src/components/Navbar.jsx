@@ -20,6 +20,9 @@ export default function Navbar() {
         <Link to="/" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
           Events
         </Link>
+        <Link to="/stats" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+          Leaderboard
+        </Link>
         {token ? (
           <>
             <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">

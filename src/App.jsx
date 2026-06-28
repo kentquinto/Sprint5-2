@@ -8,6 +8,7 @@ import EventDetailPage from './pages/EventDetailPage'
 import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import PlayerProfilePage from './pages/PlayerProfilePage'
+import StatsPage from './pages/StatsPage'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <ProtectedRoute><ProfilePage /></ProtectedRoute>
           } />
           <Route path="/players/:id" element={<PlayerProfilePage />} />
+          <Route path="/stats" element={<StatsPage />} />
         </Routes>
       </main>
     </BrowserRouter>
