@@ -20,7 +20,7 @@ export default function PlayerProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      <Link to="/" className="text-sm text-blue-600 hover:underline mb-6 inline-block">
+      <Link to="/events" className="text-sm text-blue-600 hover:underline mb-6 inline-block">
         ← Back to Events
       </Link>
 

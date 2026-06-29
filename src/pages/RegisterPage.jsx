@@ -31,7 +31,7 @@ export default function RegisterPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       login(token, meRes.data.data ?? meRes.data)
-      navigate('/')
+      navigate('/events')
     } catch (err) {
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors ?? {})

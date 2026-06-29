@@ -26,7 +26,7 @@ export default function LoginPage() {
         headers: { Authorization: `Bearer ${token}` },
       })
       login(token, meRes.data.data ?? meRes.data)
-      navigate('/')
+      navigate('/events')
     } catch (err) {
       setError(err.response?.data?.message ?? 'Login failed. Check your credentials.')
     } finally {
