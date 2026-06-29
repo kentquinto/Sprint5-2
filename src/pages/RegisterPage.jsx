@@ -117,6 +117,7 @@ export default function RegisterPage() {
               placeholder="••••••••"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
             />
+            {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation[0]}</p>}
           </div>
 
           <button

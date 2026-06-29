@@ -156,7 +156,7 @@ export default function EventDetailPage() {
           <div className="space-y-2 text-sm text-gray-700 mb-6">
             <p>📍 {event.location}</p>
             <p>📅 {new Date(event.date_time).toLocaleDateString('en-GB', {
-              day: 'numeric', month: 'long', year: 'numeric',
+              day: 'numeric', month: 'short', year: 'numeric',
             })} · {new Date(event.date_time).toLocaleTimeString('en-GB', {
               hour: '2-digit', minute: '2-digit',
             })}</p>
