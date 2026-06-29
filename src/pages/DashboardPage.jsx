@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import { STATUS_COLORS } from '../utils/statusColors'
+import ConfirmModal from '../components/ConfirmModal'
 
 const EMPTY_FORM = {
   title: '', description: '', location: '',
@@ -22,6 +23,10 @@ export default function DashboardPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [formError, setFormError] = useState('')
   const [formLoading, setFormLoading] = useState(false)
+
+  const [deleteId, setDeleteId] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     fetchAll()
@@ -91,18 +96,37 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm('Are you sure you want to delete this event?')) return
+  async function confirmDelete() {
+    setDeleteLoading(true)
+    setDeleteError('')
     try {
-      await api.delete(`/events/${id}`)
+      await api.delete(`/events/${deleteId}`)
+      setDeleteId(null)
       fetchAll()
     } catch (err) {
-      alert(err.response?.data?.message ?? 'Could not delete event.')
+      setDeleteError(err.response?.data?.message ?? 'Could not delete event.')
+      setDeleteLoading(false)
     }
   }
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
+      {deleteId && (
+        <ConfirmModal
+          title="Delete Event?"
+          message="This action cannot be undone. Are you sure you want to delete this event?"
+          confirmLabel="Delete"
+          danger
+          loading={deleteLoading}
+          onConfirm={confirmDelete}
+          onCancel={() => { setDeleteId(null); setDeleteError('') }}
+        />
+      )}
+      {deleteError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded px-4 py-3 mb-4">
+          {deleteError}
+        </div>
+      )}
       <div className="flex items-center justify-between mb-8">
         <div>
           <p className="text-sm text-gray-500">Welcome back!</p>
@@ -275,7 +299,7 @@ export default function DashboardPage() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(event.id)}
+                      onClick={() => { setDeleteId(event.id); setDeleteError('') }}
                       className="text-xs border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1 rounded transition-colors cursor-pointer"
                     >
                       Delete
