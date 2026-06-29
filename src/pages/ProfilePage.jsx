@@ -8,6 +8,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null)
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -30,7 +31,7 @@ export default function ProfilePage() {
         favorite_game_id: data.favorite_game?.id ?? '',
       })
       setGames(gamesRes.data.data ?? gamesRes.data)
-    }).finally(() => setLoading(false))
+    }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 
   async function handleSubmit(e) {
@@ -42,7 +43,7 @@ export default function ProfilePage() {
       const res = await api.put('/me', form)
       const updated = res.data.data ?? res.data
       setProfile(updated)
-      setUser(prev => ({ ...prev, name: updated.name }))
+      setUser(prev => prev ? { ...prev, name: updated.name } : prev)
       setSuccess(true)
     } catch (err) {
       setError(err.response?.data?.message ?? 'Could not save changes.')
@@ -52,6 +53,7 @@ export default function ProfilePage() {
   }
 
   if (loading) return <p className="text-center text-gray-400 py-20">Loading...</p>
+  if (loadError) return <p className="text-center text-red-400 py-20">Could not load profile. Please try again.</p>
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">

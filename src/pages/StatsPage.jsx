@@ -45,6 +45,7 @@ export default function StatsPage() {
   const [games, setGames] = useState([])
   const [organizers, setOrganizers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -55,10 +56,11 @@ export default function StatsPage() {
       setPlayers(playersRes.data.data ?? playersRes.data)
       setGames(gamesRes.data.data ?? gamesRes.data)
       setOrganizers(organizersRes.data.data ?? organizersRes.data)
-    }).finally(() => setLoading(false))
+    }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 
   if (loading) return <p className="text-center text-gray-400 py-20">Loading stats...</p>
+  if (loadError) return <p className="text-center text-red-400 py-20">Could not load stats. Please try again.</p>
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
