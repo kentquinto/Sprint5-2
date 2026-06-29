@@ -3,13 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
-
-const STATUS_COLORS = {
-  upcoming: 'bg-yellow-100 text-yellow-800',
-  ongoing: 'bg-green-100 text-green-800',
-  finished: 'bg-gray-100 text-gray-600',
-  cancelled: 'bg-red-100 text-red-700',
-}
+import { STATUS_COLORS } from '../utils/statusColors'
 
 function ConfirmModal({ action, eventTitle, onConfirm, onCancel, loading }) {
   const isJoining = action === 'join'

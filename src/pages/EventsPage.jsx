@@ -2,13 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import { getGameImage } from '../utils/gameImages'
-
-const STATUS_COLORS = {
-  upcoming: 'bg-yellow-100 text-yellow-800',
-  ongoing: 'bg-green-100 text-green-800',
-  finished: 'bg-gray-100 text-gray-600',
-  cancelled: 'bg-red-100 text-red-700',
-}
+import { STATUS_COLORS } from '../utils/statusColors'
 
 export default function EventsPage() {
   const [events, setEvents] = useState([])
@@ -60,7 +54,7 @@ export default function EventsPage() {
   }
 
   function handleGamePill(gameId) {
-    setActiveGame(gameId)
+    setActiveGame(gameId === '' ? '' : Number(gameId))
     setPage(1)
   }
 
@@ -138,7 +132,7 @@ export default function EventsPage() {
               key={game.id}
               onClick={() => handleGamePill(game.id)}
               className={`px-4 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
-                activeGame === game.id
+                activeGame === Number(game.id)
                   ? 'bg-blue-600 text-white border-blue-600'
                   : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
               }`}
