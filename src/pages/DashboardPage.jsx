@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 <input
                   type="number"
                   value={form.max_players}
-                  onChange={e => setForm({ ...form, max_players: e.target.value })}
+                  onChange={e => setForm({ ...form, max_players: Number(e.target.value) })}
                   required
                   min={2}
                   className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
@@ -213,7 +213,7 @@ export default function DashboardPage() {
                 <input
                   type="number"
                   value={form.entry_fee}
-                  onChange={e => setForm({ ...form, entry_fee: e.target.value })}
+                  onChange={e => setForm({ ...form, entry_fee: Number(e.target.value) })}
                   required
                   min={0}
                   step="0.01"
