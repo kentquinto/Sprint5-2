@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
+import { getGameImage } from '../utils/gameImages'
 
 const STATUS_COLORS = {
   upcoming: 'bg-yellow-100 text-yellow-800',
@@ -122,17 +123,27 @@ export default function EventDetailPage() {
       )}
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="bg-gray-800 rounded-lg px-8 py-10 mb-6 text-white">
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
-            {event.game?.name}
-          </p>
-          <h1 className="text-3xl font-bold mb-2">{event.title}</h1>
-          <p className="text-gray-400 text-sm">
-            Organized by{' '}
-            <Link to={`/players/${event.creator?.id}`} className="text-blue-400 hover:underline">
-              {event.creator?.name}
-            </Link>
-          </p>
+        <div className="relative rounded-lg overflow-hidden mb-6 bg-gray-800 h-36">
+          {getGameImage(event.game?.id) && (
+            <img
+              src={getGameImage(event.game?.id)}
+              alt={event.game?.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative h-full flex flex-col justify-end px-6 pb-4 text-white">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-300 mb-1">
+              {event.game?.name}
+            </p>
+            <h1 className="text-xl font-bold leading-tight">{event.title}</h1>
+            <p className="text-gray-300 text-xs mt-1">
+              by{' '}
+              <Link to={`/players/${event.creator?.id}`} className="text-blue-300 hover:underline">
+                {event.creator?.name}
+              </Link>
+            </p>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">

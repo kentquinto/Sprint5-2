@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/axios'
+import { getGameImage } from '../utils/gameImages'
 
 const STATUS_COLORS = {
   upcoming: 'bg-yellow-100 text-yellow-800',
@@ -65,9 +66,17 @@ export default function EventsPage() {
 
   return (
     <div>
-      <div className="bg-blue-700 text-white py-12 px-6">
-        <h1 className="text-3xl font-bold">All Events</h1>
-        <p className="text-blue-200 mt-1">Browse and join TCG events!</p>
+      <div className="relative overflow-hidden text-white py-16 px-6">
+        <img
+          src="/images/ui/bannerwallpaper.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="relative">
+          <h1 className="text-4xl font-bold">All Events</h1>
+          <p className="text-gray-200 mt-2">Browse and join TCG events!</p>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -151,10 +160,19 @@ export default function EventsPage() {
                 to={`/events/${event.id}`}
                 className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
               >
-                <div className="bg-gray-800 px-4 py-6">
-                  <p className="text-xs font-bold text-white uppercase tracking-widest">
-                    {event.game?.name}
-                  </p>
+                <div className="relative h-36 bg-gray-800 overflow-hidden">
+                  {getGameImage(event.game?.id) && (
+                    <img
+                      src={getGameImage(event.game?.id)}
+                      alt={event.game?.name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/50 flex items-end px-4 py-3">
+                    <p className="text-xs font-bold text-white uppercase tracking-widest">
+                      {event.game?.name}
+                    </p>
+                  </div>
                 </div>
                 <div className="p-4">
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
