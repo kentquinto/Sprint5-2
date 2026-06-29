@@ -35,7 +35,7 @@ export default function EventsPage() {
       if (activeGame) params.game = activeGame
       if (page > 1) params.page = page
       const res = await api.get('/events', { params })
-      setEvents(res.data.data)
+      setEvents(res.data.data ?? res.data)
       setMeta(res.data.meta)
     } finally {
       setLoading(false)

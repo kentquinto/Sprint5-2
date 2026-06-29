@@ -19,7 +19,7 @@ export default function ConfirmModal({ title, message, confirmLabel, danger = fa
               danger ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
-            {loading ? 'Deleting...' : confirmLabel}
+            {loading ? `${confirmLabel}...` : confirmLabel}
           </button>
         </div>
       </div>

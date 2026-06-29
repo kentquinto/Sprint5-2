@@ -4,46 +4,7 @@ import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS } from '../utils/statusColors'
-
-function ConfirmModal({ action, eventTitle, onConfirm, onCancel, loading }) {
-  const isJoining = action === 'join'
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-2">
-          {isJoining ? 'Join Event?' : 'Leave Event?'}
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          {isJoining
-            ? `You are about to join "${eventTitle}". Are you sure?`
-            : `You are about to leave "${eventTitle}". Are you sure?`}
-        </p>
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            className="px-4 py-2 rounded text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className={`px-4 py-2 rounded text-sm text-white font-medium transition-colors cursor-pointer disabled:opacity-50 ${
-              isJoining
-                ? 'bg-blue-600 hover:bg-blue-700'
-                : 'bg-red-500 hover:bg-red-600'
-            }`}
-          >
-            {loading
-              ? isJoining ? 'Joining...' : 'Leaving...'
-              : isJoining ? 'Yes, join' : 'Yes, leave'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+import ConfirmModal from '../components/ConfirmModal'
 
 export default function EventDetailPage() {
   const { id } = useParams()
@@ -108,11 +69,15 @@ export default function EventDetailPage() {
     <>
       {pendingAction && (
         <ConfirmModal
-          action={pendingAction}
-          eventTitle={event.title}
+          title={pendingAction === 'join' ? 'Join Event?' : 'Leave Event?'}
+          message={pendingAction === 'join'
+            ? `You are about to join "${event.title}". Are you sure?`
+            : `You are about to leave "${event.title}". Are you sure?`}
+          confirmLabel={pendingAction === 'join' ? 'Yes, join' : 'Yes, leave'}
+          danger={pendingAction === 'leave'}
+          loading={actionLoading}
           onConfirm={handleConfirm}
           onCancel={() => setPendingAction(null)}
-          loading={actionLoading}
         />
       )}
 
