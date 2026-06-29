@@ -18,6 +18,9 @@ export default function Navbar() {
       </Link>
       <div className="flex items-center gap-6">
         <Link to="/" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+          Home
+        </Link>
+        <Link to="/events" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
           Events
         </Link>
         <Link to="/stats" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
