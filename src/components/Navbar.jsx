@@ -12,31 +12,25 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-      <Link to="/" className="text-blue-600 font-bold text-xl tracking-tight">
-        TCG Manager
+    <nav
+      className="sticky top-0 z-50 flex items-center justify-between px-6 py-3"
+    >
+      <Link to="/" className="font-cinzel font-bold text-xl tracking-tight text-white drop-shadow">
+        ⚔️ TCG Manager
       </Link>
+
       <div className="flex items-center gap-6">
-        <Link to="/" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-          Home
-        </Link>
-        <Link to="/events" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-          Events
-        </Link>
-        <Link to="/stats" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-          Leaderboard
-        </Link>
+        <Link to="/"       className="text-sm font-medium text-white/90 hover:text-white transition-colors drop-shadow">Home</Link>
+        <Link to="/events" className="text-sm font-medium text-white/90 hover:text-white transition-colors drop-shadow">Events</Link>
+        <Link to="/stats"  className="text-sm font-medium text-white/90 hover:text-white transition-colors drop-shadow">Leaderboard</Link>
+
         {token ? (
           <>
-            <Link to="/dashboard" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-              Dashboard
-            </Link>
-            <Link to="/profile" className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-              {user?.name ?? 'Profile'}
-            </Link>
+            <Link to="/dashboard" className="text-sm font-medium text-white/90 hover:text-white transition-colors drop-shadow">Dashboard</Link>
+            <Link to="/profile"   className="text-sm font-medium text-white/90 hover:text-white transition-colors drop-shadow">{user?.name ?? 'Profile'}</Link>
             <button
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm transition-colors cursor-pointer"
+              className="px-4 py-1.5 rounded-full text-sm font-bold text-white bg-red-500/80 hover:bg-red-500 transition-colors cursor-pointer"
             >
               Logout
             </button>
@@ -45,13 +39,13 @@ export default function Navbar() {
           <>
             <Link
               to="/login"
-              className="border border-blue-600 text-blue-600 hover:bg-blue-50 px-4 py-1.5 rounded text-sm transition-colors"
+              className="px-4 py-1.5 rounded-full text-sm font-bold border-2 border-white/70 text-white hover:bg-white/20 transition-colors"
             >
               Login
             </Link>
             <Link
               to="/register"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors"
+              className="px-4 py-1.5 rounded-full text-sm font-bold text-white bg-white/20 hover:bg-white/30 border border-white/40 transition-colors"
             >
               Register
             </Link>
