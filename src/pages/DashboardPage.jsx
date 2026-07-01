@@ -2,18 +2,17 @@ import { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
-
-const STATUS_COLORS = {
-  upcoming: 'bg-yellow-100 text-yellow-800',
-  ongoing: 'bg-green-100 text-green-800',
-  finished: 'bg-gray-100 text-gray-600',
-  cancelled: 'bg-red-100 text-red-700',
-}
+import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import ConfirmModal from '../components/ConfirmModal'
+import SkyBanner from '../components/SkyBanner'
+import EventForm from '../components/EventForm'
+import Toast from '../components/Toast'
 
 const EMPTY_FORM = {
   title: '', description: '', location: '',
   date_time: '', max_players: 16, entry_fee: 0, game_id: '',
 }
+
 
 export default function DashboardPage() {
   const { user } = useContext(AuthContext)
@@ -29,9 +28,14 @@ export default function DashboardPage() {
   const [formError, setFormError] = useState('')
   const [formLoading, setFormLoading] = useState(false)
 
+  const [deleteId, setDeleteId] = useState(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+  const [toast, setToast] = useState('')
+
   useEffect(() => {
     fetchAll()
-    api.get('/games').then(res => setGames(res.data.data ?? res.data))
+    api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
   }, [])
 
   async function fetchAll() {
@@ -85,9 +89,12 @@ export default function DashboardPage() {
     try {
       if (editingId) {
         await api.put(`/events/${editingId}`, form)
+        setToast('Event updated successfully!')
       } else {
         await api.post('/events', form)
+        setToast('Event created successfully!')
       }
+      setTimeout(() => setToast(''), 3500)
       cancelForm()
       fetchAll()
     } catch (err) {
@@ -97,235 +104,139 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm('Are you sure you want to delete this event?')) return
+  async function confirmDelete() {
+    setDeleteLoading(true)
+    setDeleteError('')
     try {
-      await api.delete(`/events/${id}`)
+      await api.delete(`/events/${deleteId}`)
+      setDeleteId(null)
+      setToast('Event deleted.')
+      setTimeout(() => setToast(''), 3500)
       fetchAll()
     } catch (err) {
-      alert(err.response?.data?.message ?? 'Could not delete event.')
+      setDeleteError(err.response?.data?.message ?? 'Could not delete event.')
+      setDeleteLoading(false)
     }
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <p className="text-sm text-gray-500">Welcome back!</p>
-          <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
-        </div>
-        {!showForm && (
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
-          >
-            + Create Event
-          </button>
-        )}
-      </div>
-
-      {showForm && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-bold text-gray-900 mb-6">
-            {editingId ? 'Edit Event' : 'Create an Event'}
-          </h2>
-          {formError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded px-4 py-3 mb-4">
-              {formError}
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Event Title</label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={e => setForm({ ...form, title: e.target.value })}
-                  required
-                  placeholder="e.g. Local tournament"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Game</label>
-                <select
-                  value={form.game_id}
-                  onChange={e => setForm({ ...form, game_id: e.target.value })}
-                  required
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                >
-                  <option value="">Select a game</option>
-                  {games.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</label>
-              <textarea
-                value={form.description}
-                onChange={e => setForm({ ...form, description: e.target.value })}
-                rows={3}
-                placeholder="Describe your event..."
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Location</label>
-              <input
-                type="text"
-                value={form.location}
-                onChange={e => setForm({ ...form, location: e.target.value })}
-                required
-                placeholder="e.g. Barcelona Game Store"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Date & Time</label>
-                <input
-                  type="datetime-local"
-                  value={form.date_time}
-                  onChange={e => setForm({ ...form, date_time: e.target.value })}
-                  required
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Max Players</label>
-                <input
-                  type="number"
-                  value={form.max_players}
-                  onChange={e => setForm({ ...form, max_players: e.target.value })}
-                  required
-                  min={2}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Entry Fee (€)</label>
-                <input
-                  type="number"
-                  value={form.entry_fee}
-                  onChange={e => setForm({ ...form, entry_fee: e.target.value })}
-                  required
-                  min={0}
-                  step="0.01"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={formLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
-              >
-                {formLoading ? 'Saving...' : editingId ? 'Save Changes' : 'Create Event'}
-              </button>
-              <button
-                type="button"
-                onClick={cancelForm}
-                className="border border-gray-300 text-gray-600 hover:bg-gray-50 px-5 py-2 rounded text-sm transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+      {deleteId && (
+        <ConfirmModal
+          title="Delete Event?"
+          message={deleteError || "This action cannot be undone. Are you sure you want to delete this event?"}
+          confirmLabel="Delete"
+          danger
+          loading={deleteLoading}
+          onConfirm={confirmDelete}
+          onCancel={() => { setDeleteId(null); setDeleteError('') }}
+        />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
-            Created Events
-          </h2>
-          {loading ? (
-            <p className="text-sm text-gray-400">Loading...</p>
-          ) : organizedEvents.length === 0 ? (
-            <p className="text-sm text-gray-400">You haven't created any events yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {organizedEvents.map(event => (
-                <div key={event.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        to={`/events/${event.id}`}
-                        className="font-semibold text-gray-900 hover:text-blue-600 text-sm"
-                      >
-                        {event.title}
-                      </Link>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {event.game?.name} · {new Date(event.date_time).toLocaleDateString('en-GB', {
-                          day: 'numeric', month: 'short', year: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[event.status]}`}>
-                      {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => openEdit(event)}
-                      className="text-xs border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-1 rounded transition-colors cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(event.id)}
-                      className="text-xs border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1 rounded transition-colors cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+      <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} pageTitle="Dashboard" subtitle="Manage your events and track your activity" />
 
-        <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
-            Joined Events
-          </h2>
-          {loading ? (
-            <p className="text-sm text-gray-400">Loading...</p>
-          ) : joinedEvents.length === 0 ? (
-            <p className="text-sm text-gray-400">You haven't joined any events yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {joinedEvents.map(event => (
-                <Link
-                  key={event.id}
-                  to={`/events/${event.id}`}
-                  className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm">{event.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {event.game?.name} · {new Date(event.date_time).toLocaleDateString('en-GB', {
-                          day: 'numeric', month: 'short', year: 'numeric'
-                        })}
-                      </p>
+      <Toast message={toast} />
+
+      <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+        {/* Create Event button */}
+        {!showForm && (
+          <div className="flex justify-end mb-6">
+            <button
+              onClick={openCreate}
+              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm"
+            >
+              + Create Event
+            </button>
+          </div>
+        )}
+
+        {/* Event Form */}
+        {showForm && (
+          <EventForm
+            form={form}
+            setForm={setForm}
+            games={games}
+            editingId={editingId}
+            formError={formError}
+            formLoading={formLoading}
+            onSubmit={handleSubmit}
+            onCancel={cancelForm}
+          />
+        )}
+
+        {/* Event lists */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
+              Created Events
+            </h2>
+            {loading ? (
+              <p className="text-sm text-white/70">Loading...</p>
+            ) : organizedEvents.length === 0 ? (
+              <p className="text-sm text-white/70">You haven't created any events yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {organizedEvents.map(event => (
+                  <div key={event.id} className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <Link to={`/events/${event.id}`}
+                          className="font-semibold text-[#0F172A] hover:text-[#2563EB] text-sm transition-colors">
+                          {event.title}
+                        </Link>
+                        <p className="text-xs text-[#334155]/70 mt-0.5">
+                          {event.game?.name} · {formatDate(event.date_time)}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[event.status]}`}>
+                        {capitalize(event.status)}
+                      </span>
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[event.status]}`}>
-                      {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                    </span>
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={() => openEdit(event)}
+                        className="text-xs border border-[#DCEEFF] text-[#2563EB] hover:bg-[#DCEEFF] px-3 py-1 rounded-full transition-colors cursor-pointer">
+                        Edit
+                      </button>
+                      <button onClick={() => { setDeleteId(event.id); setDeleteError('') }}
+                        className="text-xs border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1 rounded-full transition-colors cursor-pointer">
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </Link>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
+              Joined Events
+            </h2>
+            {loading ? (
+              <p className="text-sm text-white/70">Loading...</p>
+            ) : joinedEvents.length === 0 ? (
+              <p className="text-sm text-white/70">You haven't joined any events yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {joinedEvents.map(event => (
+                  <Link key={event.id} to={`/events/${event.id}`}
+                    className="block bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm hover:border-[#60A5FA] transition-colors">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-[#0F172A] text-sm">{event.title}</p>
+                        <p className="text-xs text-[#334155]/70 mt-0.5">
+                          {event.game?.name} · {formatDate(event.date_time)}
+                        </p>
+                      </div>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[event.status]}`}>
+                        {capitalize(event.status)}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

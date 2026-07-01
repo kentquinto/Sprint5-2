@@ -1,57 +1,17 @@
 import { useState, useEffect, useContext } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
-
-const STATUS_COLORS = {
-  upcoming: 'bg-yellow-100 text-yellow-800',
-  ongoing: 'bg-green-100 text-green-800',
-  finished: 'bg-gray-100 text-gray-600',
-  cancelled: 'bg-red-100 text-red-700',
-}
-
-function ConfirmModal({ action, eventTitle, onConfirm, onCancel, loading }) {
-  const isJoining = action === 'join'
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-2">
-          {isJoining ? 'Join Event?' : 'Leave Event?'}
-        </h2>
-        <p className="text-sm text-gray-500 mb-6">
-          {isJoining
-            ? `You are about to join "${eventTitle}". Are you sure?`
-            : `You are about to leave "${eventTitle}". Are you sure?`}
-        </p>
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onCancel}
-            disabled={loading}
-            className="px-4 py-2 rounded text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            disabled={loading}
-            className={`px-4 py-2 rounded text-sm text-white font-medium transition-colors cursor-pointer disabled:opacity-50 ${
-              isJoining
-                ? 'bg-blue-600 hover:bg-blue-700'
-                : 'bg-red-500 hover:bg-red-600'
-            }`}
-          >
-            {loading
-              ? isJoining ? 'Joining...' : 'Leaving...'
-              : isJoining ? 'Yes, join' : 'Yes, leave'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+import { getGameImage } from '../utils/gameImages'
+import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import ConfirmModal from '../components/ConfirmModal'
+import Toast from '../components/Toast'
+import PageScreen from '../components/PageScreen'
 
 export default function EventDetailPage() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const { token, user } = useContext(AuthContext)
 
   const [event, setEvent] = useState(null)
@@ -60,10 +20,9 @@ export default function EventDetailPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState('')
   const [pendingAction, setPendingAction] = useState(null)
+  const [toast, setToast] = useState('')
 
-  useEffect(() => {
-    fetchAll()
-  }, [id])
+  useEffect(() => { fetchAll() }, [id])
 
   async function fetchAll() {
     setLoading(true)
@@ -72,9 +31,10 @@ export default function EventDetailPage() {
         api.get(`/events/${id}`),
         api.get(`/events/${id}/participants`),
       ])
-      setEvent(eventRes.data.data ?? eventRes.data)
-      const parts = participantsRes.data.data ?? participantsRes.data ?? []
-      setParticipants(parts)
+      const eventData = eventRes.data.data ?? eventRes.data
+      setEvent(eventData)
+      setParticipants(participantsRes.data.data ?? participantsRes.data ?? [])
+      document.title = `${eventData.title} — TCG Manager`
     } catch {
       setError('Could not load event.')
     } finally {
@@ -88,8 +48,12 @@ export default function EventDetailPage() {
     try {
       if (pendingAction === 'join') {
         await api.post(`/events/${id}/participants`)
+        setToast('You have joined the event!')
+        setTimeout(() => setToast(''), 3500)
       } else {
         await api.delete(`/events/${id}/participants`)
+        setToast('You have left the event.')
+        setTimeout(() => setToast(''), 3500)
       }
       setPendingAction(null)
       await fetchAll()
@@ -101,8 +65,8 @@ export default function EventDetailPage() {
     }
   }
 
-  if (loading) return <p className="text-center text-gray-400 py-20">Loading...</p>
-  if (!event) return <p className="text-center text-gray-400 py-20">Event not found.</p>
+  if (loading) return <PageScreen message="Loading..." />
+  if (!event)  return <PageScreen message="Event not found." />
 
   const isParticipant = participants.some(p => Number(p.id) === Number(user?.id))
   const isCreator = Number(event.creator?.id) === Number(user?.id)
@@ -110,112 +74,116 @@ export default function EventDetailPage() {
     (event.status === 'upcoming' || event.status === 'ongoing')
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+      <Toast message={toast} />
+
       {pendingAction && (
         <ConfirmModal
-          action={pendingAction}
-          eventTitle={event.title}
+          title={pendingAction === 'join' ? 'Join Event?' : 'Leave Event?'}
+          message={pendingAction === 'join'
+            ? `You are about to join "${event.title}". Are you sure?`
+            : `You are about to leave "${event.title}". Are you sure?`}
+          confirmLabel={pendingAction === 'join' ? 'Yes, join' : 'Yes, leave'}
+          danger={pendingAction === 'leave'}
+          loading={actionLoading}
           onConfirm={handleConfirm}
           onCancel={() => setPendingAction(null)}
-          loading={actionLoading}
         />
       )}
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="bg-gray-800 rounded-lg px-8 py-10 mb-6 text-white">
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
-            {event.game?.name}
-          </p>
-          <h1 className="text-3xl font-bold mb-2">{event.title}</h1>
-          <p className="text-gray-400 text-sm">
-            Organized by{' '}
-            <Link to={`/players/${event.creator?.id}`} className="text-blue-400 hover:underline">
-              {event.creator?.name}
-            </Link>
-          </p>
+      <div className="max-w-4xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+        <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-4 inline-block transition-colors cursor-pointer">
+          ← Back
+        </button>
+
+        {/* Game image banner */}
+        <div className="relative rounded-2xl overflow-hidden mb-6 bg-gray-800 h-44 shadow-sm">
+          {getGameImage(event.game?.id) && (
+            <img src={getGameImage(event.game?.id)} alt={event.game?.name}
+              className="absolute inset-0 w-full h-full object-cover" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent flex flex-col justify-end px-6 pb-5 text-white">
+            <p className="font-cinzel text-xs font-bold uppercase tracking-widest text-white/80 mb-1 drop-shadow">
+              {event.game?.name}
+            </p>
+            <h1 className="text-2xl font-bold leading-tight drop-shadow">{event.title}</h1>
+            <p className="text-white/70 text-xs mt-1 drop-shadow">
+              by{' '}
+              <Link to={`/players/${event.creator?.id}`} className="text-[#93C5FD] hover:underline">
+                {event.creator?.name}
+              </Link>
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        {/* Event details */}
+        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-4 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
-              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+              {capitalize(event.status)}
             </span>
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+            <span className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide">
               {event.game?.name}
             </span>
           </div>
 
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-3">
             Event Details
           </p>
-          <div className="space-y-2 text-sm text-gray-700 mb-6">
+          <div className="space-y-2 text-sm text-[#334155] mb-6">
             <p>📍 {event.location}</p>
-            <p>📅 {new Date(event.date_time).toLocaleDateString('en-GB', {
-              day: 'numeric', month: 'long', year: 'numeric',
-            })} · {new Date(event.date_time).toLocaleTimeString('en-GB', {
-              hour: '2-digit', minute: '2-digit',
-            })}</p>
+            <p>📅 {formatDate(event.date_time)} · {new Date(event.date_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
             <p>💰 {event.entry_fee > 0 ? `€${event.entry_fee}` : 'Free entry'}</p>
             <p>👥 {event.participants_count} / {event.max_players} players</p>
           </div>
 
           {event.description && (
             <>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-2">
                 Description
               </p>
-              <p className="text-sm text-gray-700 mb-6">{event.description}</p>
+              <p className="text-sm text-[#334155] mb-6">{event.description}</p>
             </>
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded px-4 py-3 mb-4">
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
               {error}
             </div>
           )}
 
           {!token && (
-            <Link
-              to="/login"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded text-sm font-medium transition-colors"
-            >
+            <Link to="/login"
+              className="inline-block bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors shadow-sm">
               Login to Join
             </Link>
           )}
-
           {canJoin && (
-            <button
-              onClick={() => setPendingAction('join')}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
-            >
+            <button onClick={() => setPendingAction('join')}
+              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
               Join Event
             </button>
           )}
-
           {token && isParticipant && (
-            <button
-              onClick={() => setPendingAction('leave')}
-              className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
-            >
+            <button onClick={() => setPendingAction('leave')}
+              className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
               Leave Event
             </button>
           )}
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">
+        {/* Participants */}
+        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
+          <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-4">
             Participants ({participants.length})
           </p>
           {participants.length === 0 ? (
-            <p className="text-sm text-gray-400">No participants yet.</p>
+            <p className="text-sm text-[#334155]/60">No participants yet.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {participants.map(p => (
-                <Link
-                  key={p.id}
-                  to={`/players/${p.id}`}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm px-3 py-1 rounded-full transition-colors"
-                >
+                <Link key={p.id} to={`/players/${p.id}`}
+                  className="bg-white/70 hover:bg-white text-[#0F172A] text-sm px-3 py-1 rounded-full border border-[#DCEEFF] hover:border-[#60A5FA] transition-colors">
                   {p.name}
                 </Link>
               ))}
@@ -223,6 +191,6 @@ export default function EventDetailPage() {
           )}
         </div>
       </div>
-    </>
+    </div>
   )
 }

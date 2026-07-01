@@ -1,94 +1,121 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/axios'
+import SkyBanner from '../components/SkyBanner'
+import PageScreen from '../components/PageScreen'
 
-function LeaderboardTable({ title, rows, rankKey, nameKey, countKey, countLabel, linkPrefix }) {
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100">
-        <h2 className="font-bold text-gray-900 text-sm uppercase tracking-wide">{title}</h2>
-      </div>
-      <div className="divide-y divide-gray-50">
-        {rows.map((row, i) => (
-          <div key={row.id ?? i} className="flex items-center justify-between px-5 py-3">
-            <div className="flex items-center gap-3">
-              <span className={`text-sm font-bold w-6 text-center ${
-                i === 0 ? 'text-yellow-500' :
-                i === 1 ? 'text-gray-400' :
-                i === 2 ? 'text-amber-600' : 'text-gray-300'
-              }`}>
-                {i + 1}
-              </span>
-              {linkPrefix ? (
-                <Link to={`${linkPrefix}/${row.id}`} className="text-sm text-blue-600 hover:underline font-medium">
-                  {row[nameKey]}
-                </Link>
-              ) : (
-                <span className="text-sm text-gray-800 font-medium">{row[nameKey]}</span>
-              )}
-            </div>
-            <span className="text-sm text-gray-500">
-              {row[countKey]} <span className="text-xs text-gray-400">{countLabel}</span>
-            </span>
-          </div>
-        ))}
-        {rows.length === 0 && (
-          <p className="text-sm text-gray-400 px-5 py-4">No data yet.</p>
-        )}
-      </div>
-    </div>
-  )
-}
+const TABLES = [
+  { key: 'players',    title: 'Top Players',        nameKey: 'name', countKey: 'joined_events_count',    countLabel: 'events joined',    linkPrefix: '/players' },
+  { key: 'games',      title: 'Most Active Games',  nameKey: 'name', countKey: 'events_count',           countLabel: 'events'                                   },
+  { key: 'organizers', title: 'Top Organizers',     nameKey: 'name', countKey: 'organized_events_count', countLabel: 'events organized', linkPrefix: '/players' },
+]
 
 export default function StatsPage() {
-  const [players, setPlayers] = useState([])
-  const [games, setGames] = useState([])
-  const [organizers, setOrganizers] = useState([])
+  const [data, setData] = useState({ players: [], games: [], organizers: [] })
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [active, setActive] = useState(0)
 
   useEffect(() => {
     Promise.all([
       api.get('/stats/players'),
       api.get('/stats/games'),
       api.get('/stats/organizers'),
-    ]).then(([playersRes, gamesRes, organizersRes]) => {
-      setPlayers(playersRes.data.data ?? playersRes.data)
-      setGames(gamesRes.data.data ?? gamesRes.data)
-      setOrganizers(organizersRes.data.data ?? organizersRes.data)
-    }).finally(() => setLoading(false))
+    ]).then(([p, g, o]) => {
+      setData({
+        players:    p.data.data ?? p.data,
+        games:      g.data.data ?? g.data,
+        organizers: o.data.data ?? o.data,
+      })
+    }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p className="text-center text-gray-400 py-20">Loading stats...</p>
+  function prev() { setActive(a => (a - 1 + 3) % 3) }
+  function next() { setActive(a => (a + 1) % 3) }
+
+  if (loading)   return <PageScreen message="Loading stats..." />
+  if (loadError) return <PageScreen message="Could not load stats. Please try again." />
+
+  const { key, title, nameKey, countKey, countLabel, linkPrefix } = TABLES[active]
+  const rows = data[key]
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Leaderboard</h1>
-      <p className="text-sm text-gray-500 mb-8">Top players, organizers, and most active games</p>
+    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <LeaderboardTable
-          title="Top Players"
-          rows={players}
-          nameKey="name"
-          countKey="joined_events_count"
-          countLabel="events joined"
-          linkPrefix="/players"
-        />
-        <LeaderboardTable
-          title="Most Active Games"
-          rows={games}
-          nameKey="name"
-          countKey="events_count"
-          countLabel="events"
-        />
-        <LeaderboardTable
-          title="Top Organizers"
-          rows={organizers}
-          nameKey="name"
-          countKey="organized_events_count"
-          countLabel="events organized"
-          linkPrefix="/players"
-        />
+      <SkyBanner title="Leaderboard" subtitle="Top players, organizers, and most active games" />
+
+      <div className="max-w-2xl mx-auto px-6 py-10" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={prev}
+            className="px-4 py-2 rounded-full bg-white/80 hover:bg-white border border-white/60 text-sm font-medium text-[#0F172A] transition-colors cursor-pointer shadow-sm"
+          >
+            ← Prev
+          </button>
+
+          <div className="flex items-center gap-2">
+            {TABLES.map((t, i) => (
+              <button
+                key={t.key}
+                onClick={() => setActive(i)}
+                className="cursor-pointer transition-all"
+                style={{
+                  width: i === active ? 24 : 8,
+                  height: 8,
+                  borderRadius: 4,
+                  background: i === active ? '#2563EB' : 'rgba(255,255,255,0.6)',
+                  border: 'none',
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={next}
+            className="px-4 py-2 rounded-full bg-white/80 hover:bg-white border border-white/60 text-sm font-medium text-[#0F172A] transition-colors cursor-pointer shadow-sm"
+          >
+            Next →
+          </button>
+        </div>
+
+        {/* Active table */}
+        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-5 py-4 border-b border-[#DCEEFF] flex items-center justify-between">
+            <h2 className="font-cinzel font-bold text-[#0F172A] text-sm uppercase tracking-wide">{title}</h2>
+            <span className="text-xs text-[#334155]/50 font-cinzel">{active + 1} / 3</span>
+          </div>
+          <div className="divide-y divide-[#DCEEFF]/60">
+            {rows.map((row, idx) => (
+              <div key={row.id ?? idx} className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <span className={`text-sm font-bold w-6 text-center ${
+                    idx === 0 ? 'text-yellow-500' :
+                    idx === 1 ? 'text-slate-400' :
+                    idx === 2 ? 'text-amber-600' : 'text-slate-300'
+                  }`}>
+                    {idx + 1}
+                  </span>
+                  {linkPrefix ? (
+                    <Link to={`${linkPrefix}/${row.id}`} className="text-sm font-medium text-[#2563EB] hover:underline">
+                      {row[nameKey]}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-medium text-[#0F172A]">{row[nameKey]}</span>
+                  )}
+                </div>
+                <span className="text-sm text-[#334155]">
+                  {row[countKey]} <span className="text-xs text-[#334155]/60">{countLabel}</span>
+                </span>
+              </div>
+            ))}
+            {rows.length === 0 && (
+              <p className="text-sm text-[#334155] px-5 py-4">No data yet.</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

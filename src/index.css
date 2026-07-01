@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+@theme {
+  --font-cinzel: 'Cinzel', serif;
+}
+
+@layer base {
+  body {
+    background-color: #0ea5e9;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-cinzel);
+  }
+}
+
+@keyframes cloudDrift {
+  from { transform: translateX(110vw); }
+  to { transform: translateX(-400px); }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateX(-50%) scale(0.85) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes houseShake {
+  0%, 70%, 100% { transform: translateX(0); }
+  72%           { transform: translateX(-4px) rotate(-2deg); }
+  76%           { transform: translateX(4px)  rotate(2deg); }
+  80%           { transform: translateX(-3px) rotate(-1.5deg); }
+  84%           { transform: translateX(3px)  rotate(1.5deg); }
+  88%           { transform: translateX(-2px); }
+  92%           { transform: translateX(2px); }
+}
