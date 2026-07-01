@@ -59,18 +59,18 @@ const BG_TREES = [
 const HOUSES = [
   {
     src: '/images/houses/house1.png',    h: 103, bottom: 50,  left: '8%',  floatDelay: '0s',
-    label: 'Compete!',
-    desc:  'Climb the leaderboard and prove your TCG skills in ranked tournaments.',
+    label: 'Only the bold survive here.',
+    desc:  'Enter the tournament grounds. Battle the finest duelists, collect your victories, and claim the throne.',
   },
   {
     src: '/images/houses/houseAlt1.png', h: 77, bottom: 109, left: '44%', transform: 'translateX(-50%)', floatDelay: '0.7s',
-    label: 'Join Events!',
-    desc:  'Browse upcoming tournaments for Pokémon, Yu-Gi-Oh!, Magic, and more.',
+    label: 'Welcome to the guild hall!',
+    desc:  'Browse events from across the realm, secure your spot before they fill up, or rally your crew and run your own tournament.',
   },
   {
     src: '/images/houses/house2.png',    h: 80, bottom: 107, left: '68%', floatDelay: '1.4s',
-    label: 'Host!',
-    desc:  'Create your own tournaments, set the rules, and invite players to compete.',
+    label: 'Whispers speak of a great champion...',
+    desc:  'Could it be you? The hall of records tracks every player, every event, every victory. Your legacy starts now.',
   },
 ]
 
@@ -153,6 +153,16 @@ export default function HomePage() {
             className="h-full select-none"
             style={{ animation: `houseShake 3s ease-in-out infinite`, animationDelay: floatDelay }}
           />
+
+          {/* Click me badge — hidden when speech bubble is open */}
+          {activeHouse !== i && (
+            <div className="absolute left-full -translate-x-1/2 -top-7 whitespace-nowrap"
+              style={{ animation: 'badgePulse 3s ease-in-out infinite', animationDelay: floatDelay }}>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full shadow-md border border-amber-100/60" style={{ background: '#FFF8EE', color: '#92400e' }}>
+                Tap here!
+              </span>
+            </div>
+          )}
 
           {/* Speech bubble — only renders when this house is the active one.
               zIndex: 30 so it floats above every other element in the scene.
