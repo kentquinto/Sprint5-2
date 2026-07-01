@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import api from '../api/axios'
 import SkyBanner from '../components/SkyBanner'
+import PageScreen from '../components/PageScreen'
 
 export default function PlayerProfilePage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [player, setPlayer] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -17,16 +19,8 @@ export default function PlayerProfilePage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  if (loading) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-white/80 text-sm">Loading...</p>
-    </div>
-  )
-  if (error) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-white/80 text-sm">{error}</p>
-    </div>
-  )
+  if (loading) return <PageScreen message="Loading..." />
+  if (error)   return <PageScreen message={error} />
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
@@ -37,7 +31,7 @@ export default function PlayerProfilePage() {
       />
 
       <div className="max-w-3xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        <button onClick={() => navigate(-1)} className="text-sm text-white/80 hover:text-white mb-6 inline-block transition-colors cursor-pointer">
+        <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-6 inline-block transition-colors cursor-pointer">
           ← Back
         </button>
 

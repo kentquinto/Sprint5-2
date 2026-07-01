@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import SkyBanner from '../components/SkyBanner'
+import PageScreen from '../components/PageScreen'
 
 const TABLES = [
   { key: 'players',    title: 'Top Players',        nameKey: 'name', countKey: 'joined_events_count',    countLabel: 'events joined',    linkPrefix: '/players' },
@@ -32,16 +33,8 @@ export default function StatsPage() {
   function prev() { setActive(a => (a - 1 + 3) % 3) }
   function next() { setActive(a => (a + 1) % 3) }
 
-  if (loading) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-white/80 text-sm">Loading stats...</p>
-    </div>
-  )
-  if (loadError) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-red-200 text-sm">Could not load stats. Please try again.</p>
-    </div>
-  )
+  if (loading)   return <PageScreen message="Loading stats..." />
+  if (loadError) return <PageScreen message="Could not load stats. Please try again." />
 
   const { key, title, nameKey, countKey, countLabel, linkPrefix } = TABLES[active]
   const rows = data[key]

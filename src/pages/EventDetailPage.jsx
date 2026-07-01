@@ -1,14 +1,17 @@
 import { useState, useEffect, useContext } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
 import ConfirmModal from '../components/ConfirmModal'
+import Toast from '../components/Toast'
+import PageScreen from '../components/PageScreen'
 
 export default function EventDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { token, user } = useContext(AuthContext)
 
   const [event, setEvent] = useState(null)
@@ -62,16 +65,8 @@ export default function EventDetailPage() {
     }
   }
 
-  if (loading) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-white/80 text-sm">Loading...</p>
-    </div>
-  )
-  if (!event) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-white/80 text-sm">Event not found.</p>
-    </div>
-  )
+  if (loading) return <PageScreen message="Loading..." />
+  if (!event)  return <PageScreen message="Event not found." />
 
   const isParticipant = participants.some(p => Number(p.id) === Number(user?.id))
   const isCreator = Number(event.creator?.id) === Number(user?.id)
@@ -80,15 +75,7 @@ export default function EventDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
-      {toast && (
-        <div
-          className="fixed bottom-6 right-6 z-50 bg-white/90 backdrop-blur-md border border-white/60 text-[#0F172A] text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2"
-          style={{ animation: 'fadeInUp 0.3s ease-out both' }}
-        >
-          <span className="w-2 h-2 rounded-full bg-[#2563EB] shrink-0" />
-          {toast}
-        </div>
-      )}
+      <Toast message={toast} />
 
       {pendingAction && (
         <ConfirmModal
@@ -105,7 +92,7 @@ export default function EventDetailPage() {
       )}
 
       <div className="max-w-4xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        <button onClick={() => navigate(-1)} className="text-sm text-white/80 hover:text-white mb-4 inline-block transition-colors cursor-pointer">
+        <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-4 inline-block transition-colors cursor-pointer">
           ← Back
         </button>
 

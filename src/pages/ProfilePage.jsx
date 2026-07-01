@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
+import PageScreen from '../components/PageScreen'
 import { inputCls, labelCls } from '../utils/formStyles'
 
 export default function ProfilePage() {
@@ -54,16 +55,8 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-white/80 text-sm">Loading...</p>
-    </div>
-  )
-  if (loadError) return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
-      <p className="text-red-200 text-sm">Could not load profile. Please try again.</p>
-    </div>
-  )
+  if (loading)   return <PageScreen message="Loading..." />
+  if (loadError) return <PageScreen message="Could not load profile. Please try again." />
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
