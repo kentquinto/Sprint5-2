@@ -1,9 +1,11 @@
 import { useState, useEffect, useContext } from 'react'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
+import SkyBanner from '../components/SkyBanner'
+import { inputCls, labelCls } from '../utils/formStyles'
 
 export default function ProfilePage() {
-  const { setUser } = useContext(AuthContext)
+  const { updateUser } = useContext(AuthContext)
 
   const [profile, setProfile] = useState(null)
   const [games, setGames] = useState([])
@@ -43,7 +45,7 @@ export default function ProfilePage() {
       const res = await api.put('/me', form)
       const updated = res.data.data ?? res.data
       setProfile(updated)
-      setUser(prev => prev ? { ...prev, name: updated.name } : prev)
+      updateUser({ name: updated.name })
       setSuccess(true)
     } catch (err) {
       setError(err.response?.data?.message ?? 'Could not save changes.')
@@ -52,98 +54,87 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return <p className="text-center text-gray-400 py-20">Loading...</p>
-  if (loadError) return <p className="text-center text-red-400 py-20">Could not load profile. Please try again.</p>
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
+      <p className="text-white/80 text-sm">Loading...</p>
+    </div>
+  )
+  if (loadError) return (
+    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100 flex items-center justify-center">
+      <p className="text-red-200 text-sm">Could not load profile. Please try again.</p>
+    </div>
+  )
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Profile Settings</h1>
-      <p className="text-sm text-gray-500 mb-8">Manage your account information</p>
+    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-6">
-          Profile Information
-        </p>
+      <SkyBanner eyebrow={profile?.name} title="Profile Settings" subtitle="Manage your account information" />
 
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded px-4 py-3 mb-5">
-            Profile updated successfully.
-          </div>
-        )}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded px-4 py-3 mb-5">
-            {error}
-          </div>
-        )}
+      {/* Form */}
+      <div className="max-w-2xl mx-auto px-6 py-10" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
+          <p className="font-cinzel text-xs font-bold text-[#334155] uppercase tracking-widest mb-6">
+            Profile Information
+          </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Name</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={e => setForm({ ...form, name: e.target.value })}
-                required
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-              />
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3 mb-5">
+              Profile updated successfully.
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Email</label>
-              <input
-                type="email"
-                value={profile?.email ?? ''}
-                disabled
-                className="w-full border border-gray-200 rounded px-3 py-2 text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
-              />
+          )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
+              {error}
             </div>
-          </div>
+          )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Country</label>
-              <input
-                type="text"
-                value={form.country}
-                onChange={e => setForm({ ...form, country: e.target.value })}
-                placeholder="e.g. Spain"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-              />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Name</label>
+                <input type="text" value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  required className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Email</label>
+                <input type="email" value={profile?.email ?? ''} disabled
+                  className="w-full bg-white/50 border border-white/40 rounded-lg px-3 py-2 text-sm text-[#334155]/60 cursor-not-allowed" />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Favourite Game</label>
-              <select
-                value={form.favorite_game_id}
-                onChange={e => setForm({ ...form, favorite_game_id: e.target.value })}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Select a game</option>
-                {games.map(g => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
-                ))}
-              </select>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Country</label>
+                <input type="text" value={form.country}
+                  onChange={e => setForm({ ...form, country: e.target.value })}
+                  placeholder="e.g. Spain" className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Favourite Game</label>
+                <select value={form.favorite_game_id}
+                  onChange={e => setForm({ ...form, favorite_game_id: e.target.value })}
+                  className={inputCls}>
+                  <option value="">Select a game</option>
+                  {games.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                </select>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Bio</label>
-            <textarea
-              value={form.bio}
-              onChange={e => setForm({ ...form, bio: e.target.value })}
-              rows={4}
-              placeholder="Tell other players about yourself..."
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-            />
-          </div>
+            <div>
+              <label className={labelCls}>Bio</label>
+              <textarea value={form.bio}
+                onChange={e => setForm({ ...form, bio: e.target.value })}
+                rows={4} placeholder="Tell other players about yourself..."
+                className={inputCls} />
+            </div>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-2 rounded text-sm font-medium transition-colors cursor-pointer"
-          >
-            {saving ? 'Saving...' : 'Save Changes'}
-          </button>
-        </form>
+            <button type="submit" disabled={saving}
+              className="bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white px-6 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )
