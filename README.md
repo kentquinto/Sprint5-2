@@ -6,8 +6,6 @@
 
 Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anthropic)** as AI assistant throughout the development process.
 
-> 📄 **AI Documentation (Spanish):** See [AI_DOC.md](AI_DOC.md) for the full AI interaction log, code analysis, and learning reflections required by IT Academy.
-
 ---
 
 ## Links
