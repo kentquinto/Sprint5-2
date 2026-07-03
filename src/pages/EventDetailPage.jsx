@@ -68,7 +68,8 @@ export default function EventDetailPage() {
 
   const isParticipant = participants.some(p => Number(p.id) === Number(user?.id))
   const isCreator = Number(event.creator?.id) === Number(user?.id)
-  const canJoin = token && !isCreator && !isParticipant &&
+  const isFull = event.participants_count >= event.max_players
+  const canJoin = token && !isCreator && !isParticipant && !isFull &&
     (event.status === 'upcoming' || event.status === 'ongoing')
 
   return (
@@ -117,9 +118,16 @@ export default function EventDetailPage() {
         {/* Event details */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-4 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
-              {capitalize(event.status)}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
+                {capitalize(event.status)}
+              </span>
+              {isFull && (
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-600">
+                  Full
+                </span>
+              )}
+            </div>
             <span className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide">
               {event.game?.name}
             </span>
@@ -150,6 +158,9 @@ export default function EventDetailPage() {
             </div>
           )}
 
+          {token && !isCreator && !isParticipant && isFull && (
+            <p className="text-sm text-red-500 font-semibold">This event is full.</p>
+          )}
           {!token && (
             <Link to="/login"
               className="inline-block bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors shadow-sm">

@@ -175,9 +175,16 @@ export default function EventsPage() {
                   </div>
                 </div>
                 <div className="p-3">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[event.status]}`}>
-                    {capitalize(event.status)}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLORS[event.status]}`}>
+                      {capitalize(event.status)}
+                    </span>
+                    {event.participants_count >= event.max_players && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                        Full
+                      </span>
+                    )}
+                  </div>
                   <h3 className="font-bold text-[#0F172A] text-sm mt-2 mb-1.5 leading-snug">{event.title}</h3>
                   <div className="space-y-0.5 text-xs text-[#334155]">
                     <p>📍 {event.location}</p>

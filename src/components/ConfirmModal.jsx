@@ -1,9 +1,14 @@
-export default function ConfirmModal({ title, message, confirmLabel, danger = false, loading, onConfirm, onCancel }) {
+export default function ConfirmModal({ title, message, error, confirmLabel, danger = false, loading, onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
       <div className="bg-white/90 backdrop-blur-md border border-white/60 rounded-2xl shadow-xl w-full max-w-sm p-6">
         <h2 className="text-lg font-bold text-[#0F172A] mb-2">{title}</h2>
-        <p className="text-sm text-[#334155] mb-6">{message}</p>
+        <p className="text-sm text-[#334155] mb-4">{message}</p>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2 mb-4">
+            {error}
+          </div>
+        )}
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}

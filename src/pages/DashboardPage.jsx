@@ -122,7 +122,8 @@ export default function DashboardPage() {
       {deleteId && (
         <ConfirmModal
           title="Delete Event?"
-          message={deleteError || "This action cannot be undone. Are you sure you want to delete this event?"}
+          message="This action cannot be undone. Are you sure you want to delete this event?"
+          error={deleteError}
           confirmLabel="Delete"
           danger
           loading={deleteLoading}
