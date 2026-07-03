@@ -71,6 +71,7 @@ export default function EventDetailPage() {
   const isFull = event.participants_count >= event.max_players
   const canJoin = token && !isCreator && !isParticipant && !isFull &&
     (event.status === 'upcoming' || event.status === 'ongoing')
+  const gameImg = getGameImage(event.game?.id)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
@@ -97,8 +98,8 @@ export default function EventDetailPage() {
 
         {/* Game image banner */}
         <div className="relative rounded-2xl overflow-hidden mb-6 bg-gray-800 h-44 shadow-sm">
-          {getGameImage(event.game?.id) && (
-            <img src={getGameImage(event.game?.id)} alt={event.game?.name}
+          {gameImg && (
+            <img src={gameImg} alt={event.game?.name}
               className="absolute inset-0 w-full h-full object-cover" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent flex flex-col justify-end px-6 pb-5 text-white">

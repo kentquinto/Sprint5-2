@@ -1,11 +1,10 @@
 import { useContext, useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 
 export default function Navbar() {
   const { token, user, logout } = useContext(AuthContext)
   const navigate = useNavigate()
-  const location = useLocation()
   const [open, setOpen] = useState(false)
 
   async function handleLogout() {
