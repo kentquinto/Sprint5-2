@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Local docs and presentation
+AI_DOC.md
+AI_DOC_EN.md
+presentation.html
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
