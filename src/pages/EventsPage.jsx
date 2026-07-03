@@ -13,6 +13,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true)
   const [activeGame, setActiveGame] = useState('')
   const [page, setPage] = useState(1)
+  const [sort, setSort] = useState('newest')
 
   const [form, setForm] = useState({ search: '', date: '', price: '', status: '' })
   const [appliedFilters, setAppliedFilters] = useState({})
@@ -24,6 +25,20 @@ export default function EventsPage() {
   useEffect(() => {
     fetchEvents()
   }, [appliedFilters, activeGame, page])
+
+  // Debounce search — fires 400ms after the user stops typing
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1)
+      setAppliedFilters(prev => {
+        const next = { ...prev }
+        if (form.search) next.search = form.search
+        else delete next.search
+        return next
+      })
+    }, 400)
+    return () => clearTimeout(t)
+  }, [form.search])
 
   async function fetchEvents() {
     setLoading(true)
@@ -64,6 +79,14 @@ export default function EventsPage() {
 
   const hasActiveFilters = Object.keys(appliedFilters).length > 0 || activeGame !== ''
 
+  const sortedEvents = [...events].sort((a, b) => {
+    if (sort === 'newest')   return new Date(b.date_time) - new Date(a.date_time)
+    if (sort === 'oldest')   return new Date(a.date_time) - new Date(b.date_time)
+    if (sort === 'cheapest') return a.entry_fee - b.entry_fee
+    if (sort === 'popular')  return b.participants_count - a.participants_count
+    return 0
+  })
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
 
@@ -71,15 +94,15 @@ export default function EventsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
 
-        {/* Compact inline filter bar */}
-        <div className="mb-6">
-          <form onSubmit={handleApplyFilters} className="flex flex-wrap gap-2 items-center">
+        {/* ── FILTER BAR ── */}
+        <div className="mb-6 bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-4 py-2.5 shadow-sm">
+          <form onSubmit={handleApplyFilters} className="flex gap-2 items-center overflow-x-auto">
             <input
               type="text"
               placeholder="Search events..."
               value={form.search}
               onChange={e => setForm({ ...form, search: e.target.value })}
-              className={`${compactInputCls} flex-1 min-w-[140px]`}
+              className={`${compactInputCls} w-1/2 min-w-[140px]`}
             />
             <input
               type="date"
@@ -107,6 +130,16 @@ export default function EventsPage() {
               <option value="finished">Finished</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value)}
+              className={compactInputCls}
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="cheapest">Cheapest</option>
+              <option value="popular">Most Popular</option>
+            </select>
             <button
               type="submit"
               className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-sm font-bold px-4 py-1.5 rounded-full transition-colors cursor-pointer shadow-sm"
@@ -125,7 +158,7 @@ export default function EventsPage() {
           </form>
 
           {/* Game pills */}
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-0.5">
+          <div className="flex gap-2 mt-2.5 overflow-x-auto pb-0.5">
             <button
               onClick={() => handleGamePill('')}
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
@@ -175,7 +208,9 @@ export default function EventsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event, i) => (
+            {sortedEvents.map((event, i) => {
+              const img = getGameImage(event.game?.id)
+              return (
               <Link
                 key={event.id}
                 to={`/events/${event.id}`}
@@ -183,9 +218,7 @@ export default function EventsPage() {
                 style={{ animation: 'fadeInUp 0.4s ease-out both', animationDelay: `${i * 0.07}s` }}
               >
                 <div className="relative h-20 bg-gray-800 overflow-hidden">
-                  {getGameImage(event.game?.id) && (
-                    <img src={getGameImage(event.game?.id)} alt={event.game?.name} className="w-full h-full object-cover" />
-                  )}
+                  {img && <img src={img} alt={event.game?.name} className="w-full h-full object-cover" />}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end px-3 py-2">
                     <p className="text-xs font-bold text-white uppercase tracking-widest drop-shadow">{event.game?.name}</p>
                   </div>
@@ -210,7 +243,7 @@ export default function EventsPage() {
                   </div>
                 </div>
               </Link>
-            ))}
+            )})}
           </div>
         )}
 
