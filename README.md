@@ -2,7 +2,7 @@
 
 ![TCGManager Homepage](public/images/screenshots/screenshot-home.png)
 
-**TCGManager** is a full-featured single-page application for organizing and joining Trading Card Game tournaments. Built with **React 19 + Vite + Tailwind CSS v4**, it consumes a REST API built in Laravel 13.
+**TCGManager** is a full-featured single-page application for organizing and joining Trading Card Game tournaments. Built with **React 19 + Vite 8 + Tailwind CSS v4**, it consumes a REST API built in Laravel 13.
 
 Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anthropic)** as AI assistant throughout the development process.
 
@@ -10,6 +10,7 @@ Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anth
 
 ## Links
 
+- 🔗 **Frontend repository:** [Sprint5-2](https://github.com/kentquinto/Sprint5-2)
 - 🔗 **Backend repository (Laravel API):** [Sprint5-1](https://github.com/kentquinto/Sprint5-1)
 - 🤖 **AI used:** Claude Sonnet — [Anthropic](https://anthropic.com)
 
@@ -33,22 +34,28 @@ Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anth
 Register and log in with a Bearer token stored in localStorage. Protected routes automatically redirect unauthenticated users to the login page. Expired tokens are detected globally via an Axios interceptor that clears the session and redirects to `/login`.
 
 ### Events
-Browse all events with real-time filtering by keyword, date, price, status, and game. Events are displayed in a responsive card grid with game banner images, status badges, and pagination.
+Browse all events with real-time debounced search and filtering by date, price, status, and game. Results can be sorted by newest, oldest, cheapest, or most popular. Events display in a responsive card grid with game banner images, status badges, full indicators, and pagination.
 
 ### Event Detail
-View full event information including location, date, entry fee, and participant count. Authenticated users can join or leave events with a confirmation modal. The event creator can edit or delete their event from the Dashboard.
+View full event information including location, date, entry fee, and a capacity progress bar that changes colour as the event fills up. Authenticated users can join or leave events via a confirmation modal. Events show a "Full" badge and block joining when at capacity. The event creator can edit or delete their event directly from the Dashboard.
 
 ### Dashboard
-Personal panel showing all events the user has created and joined. Includes a full event creation and editing form with validation.
+Personal panel showing all events the user has created and joined, with event counts per section. Includes a full event creation and editing form with validation and inline error handling.
 
 ### Leaderboard
-Carousel-style ranking tables for top players by events joined, top organizers by events created, and most active games by event count.
+Carousel-style ranking tables for top players by events joined, top organizers by events created, and most active games by event count. Navigated with Prev/Next buttons and dot indicators.
 
 ### Player Profiles
-Public profile pages showing player stats, bio, country, and favourite game.
+Public profile pages showing a player's organized and joined event counts, bio, country, and favourite game.
 
 ### Profile Settings
-Edit personal information including name, country, bio, and favourite game. Changes reflect immediately in the navbar.
+Edit personal information including name, country, bio, and favourite game. Changes reflect immediately in the navbar without a page reload.
+
+### 404 Page
+Unknown routes render a custom 404 page with a link back to the homepage.
+
+### Mobile Responsive
+The full app is usable on mobile. The navbar collapses into an animated hamburger menu on small screens, and all pages adapt to narrow viewports.
 
 ---
 
@@ -56,19 +63,19 @@ Edit personal information including name, country, bio, and favourite game. Chan
 
 ### Homepage
 ![Homepage](public/images/screenshots/screenshot-home.png)
-*Interactive 2D scene with animated clouds, houses, and hero text. Houses are clickable and show contextual tooltips.*
+*Interactive 2D scene with animated clouds, houses, sun, and hero text. Houses are clickable and show contextual speech bubbles.*
 
 ### Events
 ![Events](public/images/screenshots/screenshot-events.png)
-*Browse all events with inline filter bar, game pill navigation, and paginated card grid.*
+*Browse all events with a one-row filter bar (search, date, price, status, sort), game pill navigation, and a paginated card grid.*
 
 ### Event Detail
 ![Event Detail](public/images/screenshots/screenshot-event-detail.png)
-*Full event information with game banner, participant list, and join/leave actions.*
+*Full event information with game banner, capacity progress bar, Full badge, participant list, and join/leave actions.*
 
 ### Dashboard
 ![Dashboard](public/images/screenshots/screenshot-dashboard.png)
-*Personal panel showing created and joined events with edit and delete controls.*
+*Personal panel showing created (4) and joined (6) events with event counts, edit and delete controls.*
 
 ### Create Event
 ![Create Event](public/images/screenshots/screenshot-create-event.png)
@@ -78,7 +85,11 @@ Edit personal information including name, country, bio, and favourite game. Chan
 ![Leaderboard](public/images/screenshots/screenshot-leaderboard.png)
 *Carousel leaderboard with dot navigation across top players, top organizers, and most active games.*
 
-### Profile
+### Player Profile
+![Player Profile](public/images/screenshots/screenshot-player-profile.png)
+*Public player profile showing organized/joined event counts, bio, country, and favourite game.*
+
+### Profile Settings
 ![Profile](public/images/screenshots/screenshot-profile.png)
 *Profile settings page with editable name, country, bio, and favourite game.*
 
@@ -92,11 +103,12 @@ Edit personal information including name, country, bio, and favourite game. Chan
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| React | 19 | UI library |
-| Vite | 8 | Bundler and dev server |
-| Tailwind CSS | v4 | Utility-first styling |
-| React Router | v7 | Client-side routing |
-| Axios | latest | HTTP client for the API |
+| React | 19.2.6 | UI library |
+| Vite | 8.0.12 | Bundler and dev server |
+| Tailwind CSS | 4.3.1 | Utility-first styling |
+| React Router | 7.18.0 | Client-side routing |
+| Axios | 1.18.0 | HTTP client for the API |
+| Node.js | 18+ | JavaScript runtime |
 | Nginx | alpine | Production static file server |
 | Docker | — | Containerization |
 
@@ -106,9 +118,10 @@ Edit personal information including name, country, bio, and favourite game. Chan
 
 Before running the frontend you need the **Laravel backend API** running locally.
 
-1. Clone and set up the backend: [Sprint5-1](https://github.com/kentquinto/Sprint5-1)
-2. Follow its README to configure the database and run migrations
-3. Start the Laravel dev server:
+1. **Node.js 18 or higher** — [nodejs.org](https://nodejs.org)
+2. Clone and set up the backend: [Sprint5-1](https://github.com/kentquinto/Sprint5-1)
+3. Follow its README to configure the database and run migrations
+4. Start the Laravel dev server:
 
 ```bash
 php artisan serve
@@ -123,8 +136,8 @@ The API must be available at `http://localhost:8000` before starting the fronten
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/kentquinto/TCGManager-React
-cd TCGManager-React
+git clone https://github.com/kentquinto/Sprint5-2
+cd Sprint5-2
 ```
 
 ### 2. Install dependencies
@@ -196,9 +209,9 @@ src/
 ├── api/
 │   └── axios.js              # Axios instance with auth + 401 interceptors
 ├── components/
-│   ├── ConfirmModal.jsx       # Reusable confirmation dialog
+│   ├── ConfirmModal.jsx       # Reusable confirmation dialog with error prop
 │   ├── EventForm.jsx          # Create / edit event form
-│   ├── Navbar.jsx             # Global navigation bar
+│   ├── Navbar.jsx             # Responsive navbar with mobile hamburger menu
 │   ├── PageScreen.jsx         # Full-screen loading and error state
 │   ├── ProtectedRoute.jsx     # Auth guard for private routes
 │   ├── SkyBanner.jsx          # Page hero banner with document title
@@ -212,6 +225,7 @@ src/
 │   ├── EventsPage.jsx
 │   ├── HomePage.jsx
 │   ├── LoginPage.jsx
+│   ├── NotFoundPage.jsx
 │   ├── PlayerProfilePage.jsx
 │   ├── ProfilePage.jsx
 │   ├── RegisterPage.jsx
