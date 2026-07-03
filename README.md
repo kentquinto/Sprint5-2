@@ -166,7 +166,7 @@ The app will be available at `http://localhost:5173`.
 
 ## Docker
 
-The project includes a Docker setup to serve the built frontend via Nginx in production. This covers **Level 3** of the Sprint 5 requirements.
+The project includes a Docker setup to serve the built frontend via Nginx in production.
 
 ### How it works
 

@@ -9,12 +9,14 @@ export default function RegisterPage() {
   const { login } = useContext(AuthContext)
   const navigate = useNavigate()
 
+  // ── STATE ──
   const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '' })
-  const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState({}) // keyed by field name, plus `general` for non-field errors
   const [loading, setLoading] = useState(false)
 
   useEffect(() => { document.title = 'Register — TCG Manager' }, [])
 
+  // ── HANDLERS ──
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
@@ -30,6 +32,7 @@ export default function RegisterPage() {
       login(token, meRes.data.data ?? meRes.data)
       navigate('/')
     } catch (err) {
+      // 422 = Laravel validation error, one message array per field
       if (err.response?.status === 422) {
         setErrors(err.response.data.errors ?? {})
       } else {

@@ -9,16 +9,19 @@ export default function LoginPage() {
   const { login } = useContext(AuthContext)
   const navigate = useNavigate()
 
+  // ── STATE ──
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => { document.title = 'Login — TCG Manager' }, [])
 
+  // ── HANDLERS ──
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
+  // logs in, then fetches the user profile to populate AuthContext before redirecting home
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
