@@ -49,11 +49,9 @@ export default function EventDetailPage() {
       if (pendingAction === 'join') {
         await api.post(`/events/${id}/participants`)
         setToast('You have joined the event!')
-        setTimeout(() => setToast(''), 3500)
       } else {
         await api.delete(`/events/${id}/participants`)
         setToast('You have left the event.')
-        setTimeout(() => setToast(''), 3500)
       }
       setPendingAction(null)
       await fetchAll()
@@ -70,12 +68,13 @@ export default function EventDetailPage() {
 
   const isParticipant = participants.some(p => Number(p.id) === Number(user?.id))
   const isCreator = Number(event.creator?.id) === Number(user?.id)
-  const canJoin = token && !isCreator && !isParticipant &&
+  const isFull = event.participants_count >= event.max_players
+  const canJoin = token && !isCreator && !isParticipant && !isFull &&
     (event.status === 'upcoming' || event.status === 'ongoing')
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
-      <Toast message={toast} />
+      <Toast message={toast} onDone={() => setToast('')} />
 
       {pendingAction && (
         <ConfirmModal
@@ -119,9 +118,16 @@ export default function EventDetailPage() {
         {/* Event details */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-4 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
-              {capitalize(event.status)}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
+                {capitalize(event.status)}
+              </span>
+              {isFull && (
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-red-100 text-red-600">
+                  Full
+                </span>
+              )}
+            </div>
             <span className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide">
               {event.game?.name}
             </span>
@@ -134,7 +140,18 @@ export default function EventDetailPage() {
             <p>📍 {event.location}</p>
             <p>📅 {formatDate(event.date_time)} · {new Date(event.date_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
             <p>💰 {event.entry_fee > 0 ? `€${event.entry_fee}` : 'Free entry'}</p>
-            <p>👥 {event.participants_count} / {event.max_players} players</p>
+            <div>
+              <p className="mb-1">👥 {event.participants_count} / {event.max_players} players</p>
+              <div className="w-full h-1.5 bg-[#e2e8f0] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min((event.participants_count / event.max_players) * 100, 100)}%`,
+                    background: isFull ? '#ef4444' : event.participants_count / event.max_players >= 0.75 ? '#f59e0b' : '#2563EB',
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {event.description && (
@@ -152,6 +169,9 @@ export default function EventDetailPage() {
             </div>
           )}
 
+          {token && !isCreator && !isParticipant && isFull && (
+            <p className="text-sm text-red-500 font-semibold">This event is full.</p>
+          )}
           {!token && (
             <Link to="/login"
               className="inline-block bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors shadow-sm">

@@ -94,9 +94,8 @@ export default function DashboardPage() {
         await api.post('/events', form)
         setToast('Event created successfully!')
       }
-      setTimeout(() => setToast(''), 3500)
       cancelForm()
-      fetchAll()
+      await fetchAll()
     } catch (err) {
       setFormError(err.response?.data?.message ?? 'Something went wrong.')
     } finally {
@@ -111,7 +110,6 @@ export default function DashboardPage() {
       await api.delete(`/events/${deleteId}`)
       setDeleteId(null)
       setToast('Event deleted.')
-      setTimeout(() => setToast(''), 3500)
       fetchAll()
     } catch (err) {
       setDeleteError(err.response?.data?.message ?? 'Could not delete event.')
@@ -124,7 +122,8 @@ export default function DashboardPage() {
       {deleteId && (
         <ConfirmModal
           title="Delete Event?"
-          message={deleteError || "This action cannot be undone. Are you sure you want to delete this event?"}
+          message="This action cannot be undone. Are you sure you want to delete this event?"
+          error={deleteError}
           confirmLabel="Delete"
           danger
           loading={deleteLoading}
@@ -135,7 +134,7 @@ export default function DashboardPage() {
 
       <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} pageTitle="Dashboard" subtitle="Manage your events and track your activity" />
 
-      <Toast message={toast} />
+      <Toast message={toast} onDone={() => setToast('')} />
 
       <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
         {/* Create Event button */}
@@ -168,7 +167,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
-              Created Events
+              Created Events <span className="text-white/40">({organizedEvents.length})</span>
             </h2>
             {loading ? (
               <p className="text-sm text-white/70">Loading...</p>
@@ -210,7 +209,7 @@ export default function DashboardPage() {
 
           <div>
             <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
-              Joined Events
+              Joined Events <span className="text-white/40">({joinedEvents.length})</span>
             </h2>
             {loading ? (
               <p className="text-sm text-white/70">Loading...</p>
