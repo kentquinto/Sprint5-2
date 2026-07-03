@@ -95,7 +95,7 @@ export default function DashboardPage() {
         setToast('Event created successfully!')
       }
       cancelForm()
-      fetchAll()
+      await fetchAll()
     } catch (err) {
       setFormError(err.response?.data?.message ?? 'Something went wrong.')
     } finally {
