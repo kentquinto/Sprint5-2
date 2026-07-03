@@ -140,7 +140,18 @@ export default function EventDetailPage() {
             <p>📍 {event.location}</p>
             <p>📅 {formatDate(event.date_time)} · {new Date(event.date_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
             <p>💰 {event.entry_fee > 0 ? `€${event.entry_fee}` : 'Free entry'}</p>
-            <p>👥 {event.participants_count} / {event.max_players} players</p>
+            <div>
+              <p className="mb-1">👥 {event.participants_count} / {event.max_players} players</p>
+              <div className="w-full h-1.5 bg-[#e2e8f0] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.min((event.participants_count / event.max_players) * 100, 100)}%`,
+                    background: isFull ? '#ef4444' : event.participants_count / event.max_players >= 0.75 ? '#f59e0b' : '#2563EB',
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {event.description && (

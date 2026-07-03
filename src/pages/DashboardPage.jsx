@@ -167,7 +167,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
-              Created Events
+              Created Events <span className="text-white/40">({organizedEvents.length})</span>
             </h2>
             {loading ? (
               <p className="text-sm text-white/70">Loading...</p>
@@ -209,7 +209,7 @@ export default function DashboardPage() {
 
           <div>
             <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
-              Joined Events
+              Joined Events <span className="text-white/40">({joinedEvents.length})</span>
             </h2>
             {loading ? (
               <p className="text-sm text-white/70">Loading...</p>
