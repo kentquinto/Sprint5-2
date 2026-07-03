@@ -7,17 +7,21 @@ import SkyBanner from '../components/SkyBanner'
 import { compactInputCls } from '../utils/formStyles'
 
 export default function EventsPage() {
+  // ── STATE ──
   const [events, setEvents] = useState([])
   const [games, setGames] = useState([])
   const [meta, setMeta] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeGame, setActiveGame] = useState('')
   const [page, setPage] = useState(1)
-  const [sort, setSort] = useState('newest')
+  const [sort, setSort] = useState('newest') // client-side only, doesn't hit the API
 
+  // form = live input values, appliedFilters = what was last submitted/debounced.
+  // Kept separate so typing doesn't refetch on every keystroke (except search, which debounces).
   const [form, setForm] = useState({ search: '', date: '', price: '', status: '' })
   const [appliedFilters, setAppliedFilters] = useState({})
 
+  // ── DATA FETCHING ──
   useEffect(() => {
     api.get('/games').then(res => setGames(res.data.data ?? res.data))
   }, [])
@@ -40,6 +44,7 @@ export default function EventsPage() {
     return () => clearTimeout(t)
   }, [form.search])
 
+  // ── HANDLERS ──
   async function fetchEvents() {
     setLoading(true)
     try {
@@ -79,6 +84,7 @@ export default function EventsPage() {
 
   const hasActiveFilters = Object.keys(appliedFilters).length > 0 || activeGame !== ''
 
+  // ── DERIVED ── sort happens client-side on the current page of results
   const sortedEvents = [...events].sort((a, b) => {
     if (sort === 'newest')   return new Date(b.date_time) - new Date(a.date_time)
     if (sort === 'oldest')   return new Date(a.date_time) - new Date(b.date_time)
@@ -94,7 +100,7 @@ export default function EventsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
 
-        {/* ── FILTER BAR ── */}
+        {/* ── FILTER BAR ── search/date/price/status inputs + sort dropdown + game pills */}
         <div className="mb-6 bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-4 py-2.5 shadow-sm">
           <form onSubmit={handleApplyFilters} className="flex gap-2 items-center overflow-x-auto">
             <input
@@ -185,7 +191,7 @@ export default function EventsPage() {
           </div>
         </div>
 
-        {/* Events grid */}
+        {/* ── EVENTS GRID ── */}
         {loading ? (
           <p className="text-center text-white/80 py-16">Loading events...</p>
         ) : events.length === 0 ? (
@@ -247,6 +253,7 @@ export default function EventsPage() {
           </div>
         )}
 
+        {/* ── PAGINATION ── */}
         {meta && meta.last_page > 1 && (
           <div className="flex justify-center gap-2 mt-10">
             {Array.from({ length: meta.last_page }, (_, i) => i + 1).map(p => (

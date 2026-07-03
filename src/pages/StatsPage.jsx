@@ -4,6 +4,7 @@ import api from '../api/axios'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 
+// One entry per leaderboard tab; drives both the fetch and the render below
 const TABLES = [
   { key: 'players',    title: 'Top Players',        nameKey: 'name', countKey: 'joined_events_count',    countLabel: 'events joined',    linkPrefix: '/players' },
   { key: 'games',      title: 'Most Active Games',  nameKey: 'name', countKey: 'events_count',           countLabel: 'events'                                   },
@@ -11,11 +12,13 @@ const TABLES = [
 ]
 
 export default function StatsPage() {
+  // ── STATE ──
   const [data, setData] = useState({ players: [], games: [], organizers: [] })
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
-  const [active, setActive] = useState(0)
+  const [active, setActive] = useState(0) // index into TABLES for the currently shown tab
 
+  // ── DATA FETCHING ── all three leaderboards loaded together up front
   useEffect(() => {
     Promise.all([
       api.get('/stats/players'),
@@ -30,6 +33,7 @@ export default function StatsPage() {
     }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 
+  // ── HANDLERS ── wrap around the 3 tabs in either direction
   function prev() { setActive(a => (a - 1 + 3) % 3) }
   function next() { setActive(a => (a + 1) % 3) }
 

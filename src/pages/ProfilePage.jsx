@@ -8,6 +8,7 @@ import { inputCls, labelCls } from '../utils/formStyles'
 export default function ProfilePage() {
   const { updateUser } = useContext(AuthContext)
 
+  // ── STATE ──
   const [profile, setProfile] = useState(null)
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,6 +21,7 @@ export default function ProfilePage() {
     name: '', bio: '', country: '', favorite_game_id: '',
   })
 
+  // ── DATA FETCHING ── loads the current user's profile + game list to populate the form
   useEffect(() => {
     Promise.all([
       api.get('/me'),
@@ -37,6 +39,7 @@ export default function ProfilePage() {
     }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 
+  // ── HANDLERS ──
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')

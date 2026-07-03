@@ -14,14 +14,16 @@ export default function EventDetailPage() {
   const location = useLocation()
   const { token, user } = useContext(AuthContext)
 
+  // ── STATE ──
   const [event, setEvent] = useState(null)
   const [participants, setParticipants] = useState([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState('')
-  const [pendingAction, setPendingAction] = useState(null)
+  const [pendingAction, setPendingAction] = useState(null) // 'join' | 'leave' | null — drives the confirm modal
   const [toast, setToast] = useState('')
 
+  // ── DATA FETCHING ──
   useEffect(() => { fetchAll() }, [id])
 
   async function fetchAll() {
@@ -42,6 +44,7 @@ export default function EventDetailPage() {
     }
   }
 
+  // ── HANDLERS ── join/leave, confirmed via the pending-action modal
   async function handleConfirm() {
     setError('')
     setActionLoading(true)
@@ -66,6 +69,7 @@ export default function EventDetailPage() {
   if (loading) return <PageScreen message="Loading..." />
   if (!event)  return <PageScreen message="Event not found." />
 
+  // ── DERIVED ── who's viewing and what actions they're allowed to take
   const isParticipant = participants.some(p => Number(p.id) === Number(user?.id))
   const isCreator = Number(event.creator?.id) === Number(user?.id)
   const isFull = event.participants_count >= event.max_players
@@ -116,7 +120,7 @@ export default function EventDetailPage() {
           </div>
         </div>
 
-        {/* Event details */}
+        {/* Event details + join/leave actions */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-4 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -193,7 +197,7 @@ export default function EventDetailPage() {
           )}
         </div>
 
-        {/* Participants */}
+        {/* Participants list — each name links to that player's public profile */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
           <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-4">
             Participants ({participants.length})

@@ -8,10 +8,12 @@ export default function PlayerProfilePage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  // ── STATE ──
   const [player, setPlayer] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // ── DATA FETCHING ── public profile for whichever player id is in the URL
   useEffect(() => {
     api.get(`/players/${id}`)
       .then(res => setPlayer(res.data.data ?? res.data))

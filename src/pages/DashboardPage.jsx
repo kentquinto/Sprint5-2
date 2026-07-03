@@ -17,22 +17,26 @@ const EMPTY_FORM = {
 export default function DashboardPage() {
   const { user } = useContext(AuthContext)
 
+  // ── STATE ──
   const [organizedEvents, setOrganizedEvents] = useState([])
   const [joinedEvents, setJoinedEvents] = useState([])
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // create/edit form — editingId null means "creating", set means "editing that event"
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [formError, setFormError] = useState('')
   const [formLoading, setFormLoading] = useState(false)
 
+  // delete confirmation modal — deleteId set means the modal is open for that event
   const [deleteId, setDeleteId] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const [toast, setToast] = useState('')
 
+  // ── DATA FETCHING ──
   useEffect(() => {
     fetchAll()
     api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
@@ -52,6 +56,7 @@ export default function DashboardPage() {
     }
   }
 
+  // ── FORM HANDLERS ──
   function openCreate() {
     setEditingId(null)
     setForm(EMPTY_FORM)
@@ -103,6 +108,7 @@ export default function DashboardPage() {
     }
   }
 
+  // ── DELETE HANDLER ──
   async function confirmDelete() {
     setDeleteLoading(true)
     setDeleteError('')
@@ -137,7 +143,7 @@ export default function DashboardPage() {
       <Toast message={toast} onDone={() => setToast('')} />
 
       <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        {/* Create Event button */}
+        {/* Create Event button — hidden while the form is open */}
         {!showForm && (
           <div className="flex justify-end mb-6">
             <button
@@ -149,7 +155,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Event Form */}
+        {/* Event Form — shared between create and edit, keyed off editingId */}
         {showForm && (
           <EventForm
             form={form}
@@ -163,7 +169,7 @@ export default function DashboardPage() {
           />
         )}
 
-        {/* Event lists */}
+        {/* Event lists — left: events you organize (editable), right: events you joined (read-only) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
