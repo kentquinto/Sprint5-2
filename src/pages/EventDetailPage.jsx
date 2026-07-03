@@ -49,11 +49,9 @@ export default function EventDetailPage() {
       if (pendingAction === 'join') {
         await api.post(`/events/${id}/participants`)
         setToast('You have joined the event!')
-        setTimeout(() => setToast(''), 3500)
       } else {
         await api.delete(`/events/${id}/participants`)
         setToast('You have left the event.')
-        setTimeout(() => setToast(''), 3500)
       }
       setPendingAction(null)
       await fetchAll()
@@ -75,7 +73,7 @@ export default function EventDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
-      <Toast message={toast} />
+      <Toast message={toast} onDone={() => setToast('')} />
 
       {pendingAction && (
         <ConfirmModal

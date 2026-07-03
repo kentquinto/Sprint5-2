@@ -94,7 +94,6 @@ export default function DashboardPage() {
         await api.post('/events', form)
         setToast('Event created successfully!')
       }
-      setTimeout(() => setToast(''), 3500)
       cancelForm()
       fetchAll()
     } catch (err) {
@@ -111,7 +110,6 @@ export default function DashboardPage() {
       await api.delete(`/events/${deleteId}`)
       setDeleteId(null)
       setToast('Event deleted.')
-      setTimeout(() => setToast(''), 3500)
       fetchAll()
     } catch (err) {
       setDeleteError(err.response?.data?.message ?? 'Could not delete event.')
@@ -135,7 +133,7 @@ export default function DashboardPage() {
 
       <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} pageTitle="Dashboard" subtitle="Manage your events and track your activity" />
 
-      <Toast message={toast} />
+      <Toast message={toast} onDone={() => setToast('')} />
 
       <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
         {/* Create Event button */}
