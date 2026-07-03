@@ -156,7 +156,23 @@ export default function EventsPage() {
         {loading ? (
           <p className="text-center text-white/80 py-16">Loading events...</p>
         ) : events.length === 0 ? (
-          <p className="text-center text-white/80 py-16">No events found.</p>
+          /* ── EMPTY STATE ── */
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm">
+              <p className="font-cinzel font-bold text-[#0F172A] text-sm mb-1">No events found</p>
+              <p className="text-xs text-[#334155]/70">
+                {hasActiveFilters ? 'Try adjusting or clearing your filters.' : 'No tournaments have been created yet.'}
+              </p>
+              {hasActiveFilters && (
+                <button
+                  onClick={handleClearFilters}
+                  className="mt-4 text-xs text-[#2563EB] hover:underline cursor-pointer"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event, i) => (
