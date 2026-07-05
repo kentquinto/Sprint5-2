@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import GuestRoute from './components/GuestRoute'
 import HomePage from './pages/HomePage'
 import EventsPage from './pages/EventsPage'
 import LoginPage from './pages/LoginPage'
@@ -21,8 +22,12 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={
+            <GuestRoute><LoginPage /></GuestRoute>
+          } />
+          <Route path="/register" element={
+            <GuestRoute><RegisterPage /></GuestRoute>
+          } />
           <Route path="/dashboard" element={
             <ProtectedRoute><DashboardPage /></ProtectedRoute>
           } />
