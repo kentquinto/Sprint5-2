@@ -34,7 +34,9 @@ export default function App() {
           <Route path="/profile" element={
             <ProtectedRoute><ProfilePage /></ProtectedRoute>
           } />
-          <Route path="/players/:id" element={<PlayerProfilePage />} />
+          <Route path="/players/:id" element={
+            <ProtectedRoute><PlayerProfilePage /></ProtectedRoute>
+          } />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
