@@ -10,7 +10,7 @@ export default function RegisterPage() {
   const navigate = useNavigate()
 
   // ── STATE ──
-  const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '', role: 'player' })
   const [errors, setErrors] = useState({}) // keyed by field name, plus `general` for non-field errors
   const [loading, setLoading] = useState(false)
 
@@ -86,6 +86,14 @@ export default function RegisterPage() {
               <input type="password" name="password_confirmation" value={form.password_confirmation}
                 onChange={handleChange} required placeholder="••••••••" className={inputCls} />
               {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation[0]}</p>}
+            </div>
+            <div>
+              <label className={labelCls}>Account Type</label>
+              <select name="role" value={form.role} onChange={handleChange} className={inputCls}>
+                <option value="player">Player</option>
+                <option value="organizer">Organizer</option>
+              </select>
+              {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role[0]}</p>}
             </div>
             <button type="submit" disabled={loading}
               className="w-full bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white font-bold py-2.5 rounded-full text-sm transition-colors cursor-pointer shadow-sm">

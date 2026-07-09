@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import api from '../api/axios'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
@@ -57,7 +57,7 @@ export default function PlayerProfilePage() {
             </div>
             <div>
               <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-1">Favourite Game</p>
-              <p className="text-sm font-medium text-[#0F172A]">{player.favorite_game?.name || 'Not set'}</p>
+              <p className="text-sm text-[#334155]">{player.favorite_game?.name || 'Not set'}</p>
             </div>
           </div>
         </div>
