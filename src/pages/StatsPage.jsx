@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useContext } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
+import ConfirmModal from '../components/ConfirmModal'
 
 // One entry per leaderboard tab; drives both the fetch and the render below
 const TABLES = [
@@ -12,11 +14,15 @@ const TABLES = [
 ]
 
 export default function StatsPage() {
+  const { token } = useContext(AuthContext)
+  const navigate = useNavigate()
+
   // ── STATE ──
   const [data, setData] = useState({ players: [], games: [], organizers: [] })
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [active, setActive] = useState(0) // index into TABLES for the currently shown tab
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   // ── DATA FETCHING ── all three leaderboards loaded together up front
   useEffect(() => {
@@ -45,6 +51,16 @@ export default function StatsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+
+      {showLoginPrompt && (
+        <ConfirmModal
+          title="Login Required"
+          message="You need to log in to view player profiles."
+          confirmLabel="Log In"
+          onConfirm={() => navigate('/login')}
+          onCancel={() => setShowLoginPrompt(false)}
+        />
+      )}
 
       <SkyBanner title="Leaderboard" subtitle="Top players, organizers, and most active games" />
 
@@ -103,7 +119,8 @@ export default function StatsPage() {
                     {idx + 1}
                   </span>
                   {linkPrefix ? (
-                    <Link to={`${linkPrefix}/${row.id}`} className="text-sm font-medium text-[#2563EB] hover:underline">
+                    <Link to={`${linkPrefix}/${row.id}`} className="text-sm font-medium text-[#2563EB] hover:underline"
+                      onClick={e => { if (!token) { e.preventDefault(); setShowLoginPrompt(true) } }}>
                       {row[nameKey]}
                     </Link>
                   ) : (

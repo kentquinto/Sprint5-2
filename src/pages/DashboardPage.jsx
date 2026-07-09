@@ -45,11 +45,12 @@ export default function DashboardPage() {
   async function fetchAll() {
     setLoading(true)
     try {
+      const isOrganizer = user?.role === 'organizer'
       const [orgRes, joinRes] = await Promise.all([
-        api.get('/me/organized-events'),
+        isOrganizer ? api.get('/me/organized-events') : Promise.resolve(null),
         api.get('/me/joined-events'),
       ])
-      setOrganizedEvents(orgRes.data.data ?? orgRes.data)
+      if (orgRes) setOrganizedEvents(orgRes.data.data ?? orgRes.data)
       setJoinedEvents(joinRes.data.data ?? joinRes.data)
     } finally {
       setLoading(false)
@@ -143,8 +144,8 @@ export default function DashboardPage() {
       <Toast message={toast} onDone={() => setToast('')} />
 
       <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        {/* Create Event button — hidden while the form is open */}
-        {!showForm && (
+        {/* Create Event button — organizers only, hidden while the form is open */}
+        {!showForm && user?.role === 'organizer' && (
           <div className="flex justify-end mb-6">
             <button
               onClick={openCreate}
@@ -169,8 +170,12 @@ export default function DashboardPage() {
           />
         )}
 
-        {/* Event lists — left: events you organize (editable), right: events you joined (read-only) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Event lists — left: events you organize (editable, organizers only), right: events you joined (read-only) */}
+        <div className={user?.role === 'organizer'
+          ? 'grid grid-cols-1 lg:grid-cols-2 gap-8'
+          : 'max-w-xl mx-auto'
+        }>
+          {user?.role === 'organizer' && (
           <div>
             <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">
               Created Events <span className="text-white/40">({organizedEvents.length})</span>
@@ -212,6 +217,7 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+          )}
 
           <div>
             <h2 className="font-cinzel text-xs font-bold text-white/80 uppercase tracking-widest mb-4">

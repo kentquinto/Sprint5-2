@@ -22,6 +22,7 @@ export default function EventDetailPage() {
   const [error, setError] = useState('')
   const [pendingAction, setPendingAction] = useState(null) // 'join' | 'leave' | null — drives the confirm modal
   const [toast, setToast] = useState('')
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   // ── DATA FETCHING ──
   useEffect(() => { fetchAll() }, [id])
@@ -29,19 +30,27 @@ export default function EventDetailPage() {
   async function fetchAll() {
     setLoading(true)
     try {
-      const [eventRes, participantsRes] = await Promise.all([
-        api.get(`/events/${id}`),
-        api.get(`/events/${id}/participants`),
-      ])
+      const eventRes = await api.get(`/events/${id}`)
       const eventData = eventRes.data.data ?? eventRes.data
       setEvent(eventData)
-      setParticipants(participantsRes.data.data ?? participantsRes.data ?? [])
       document.title = `${eventData.title} — TCG Manager`
     } catch {
       setError('Could not load event.')
-    } finally {
       setLoading(false)
+      return
     }
+
+    // Participants require auth — a logged-out visitor still sees the event,
+    // just not the participants list.
+    if (token) {
+      try {
+        const participantsRes = await api.get(`/events/${id}/participants`)
+        setParticipants(participantsRes.data.data ?? participantsRes.data ?? [])
+      } catch {
+        setParticipants([])
+      }
+    }
+    setLoading(false)
   }
 
   // ── HANDLERS ── join/leave, confirmed via the pending-action modal
@@ -95,6 +104,16 @@ export default function EventDetailPage() {
         />
       )}
 
+      {showLoginPrompt && (
+        <ConfirmModal
+          title="Login Required"
+          message="You need to log in to view player profiles."
+          confirmLabel="Log In"
+          onConfirm={() => navigate('/login')}
+          onCancel={() => setShowLoginPrompt(false)}
+        />
+      )}
+
       <div className="max-w-4xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
         <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-4 inline-block transition-colors cursor-pointer">
           ← Back
@@ -113,7 +132,8 @@ export default function EventDetailPage() {
             <h1 className="text-2xl font-bold leading-tight drop-shadow">{event.title}</h1>
             <p className="text-white/70 text-xs mt-1 drop-shadow">
               by{' '}
-              <Link to={`/players/${event.creator?.id}`} className="text-[#93C5FD] hover:underline">
+              <Link to={`/players/${event.creator?.id}`} className="text-[#93C5FD] hover:underline"
+                onClick={e => { if (!token) { e.preventDefault(); setShowLoginPrompt(true) } }}>
                 {event.creator?.name}
               </Link>
             </p>
@@ -197,12 +217,16 @@ export default function EventDetailPage() {
           )}
         </div>
 
-        {/* Participants list — each name links to that player's public profile */}
+        {/* Participants list — names link to profiles; requires login to view */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
           <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-4">
-            Participants ({participants.length})
+            Participants ({event.participants_count})
           </p>
-          {participants.length === 0 ? (
+          {!token ? (
+            <p className="text-sm text-[#334155]/60">
+              <Link to="/login" className="text-[#2563EB] hover:underline font-medium">Login</Link> to view participants.
+            </p>
+          ) : participants.length === 0 ? (
             <p className="text-sm text-[#334155]/60">No participants yet.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
