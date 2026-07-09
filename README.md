@@ -31,22 +31,22 @@ Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anth
 ## Features
 
 ### Authentication
-Register and log in with a Bearer token stored in localStorage. Protected routes automatically redirect unauthenticated users to the login page. Expired tokens are detected globally via an Axios interceptor that clears the session and redirects to `/login`.
+Register and log in with a Bearer token stored in localStorage. Every account has a role — **Player** or **Organizer** — chosen at registration (defaults to Player) and returned on `/me`. Protected routes automatically redirect unauthenticated users to the login page. Expired tokens are detected globally via an Axios interceptor that clears the session and redirects to `/login`.
 
 ### Events
 Browse all events with real-time debounced search and filtering by date, price, status, and game. Results can be sorted by newest, oldest, cheapest, or most popular. Events display in a responsive card grid with game banner images, status badges, full indicators, and pagination.
 
 ### Event Detail
-View full event information including location, date, entry fee, and a capacity progress bar that changes colour as the event fills up. Authenticated users can join or leave events via a confirmation modal. Events show a "Full" badge and block joining when at capacity. The event creator can edit or delete their event directly from the Dashboard.
+View full event information including location, date, entry fee, and a capacity progress bar that changes colour as the event fills up. Authenticated users can join or leave events via a confirmation modal. Events show a "Full" badge and block joining when at capacity. The event creator can edit or delete their event directly from the Dashboard. The participants list requires login to view — logged-out visitors see a "Login to view participants" prompt instead.
 
 ### Dashboard
-Personal panel showing all events the user has created and joined, with event counts per section. Includes a full event creation and editing form with validation and inline error handling.
+Personal panel with role-aware layout. **Organizers** see two columns — events they've created (editable) and events they've joined. **Players** cannot create events, so the Dashboard shows a single centered column of joined events only. Includes a full event creation and editing form with validation and inline error handling, available to organizers only.
 
 ### Leaderboard
 Carousel-style ranking tables for top players by events joined, top organizers by events created, and most active games by event count. Navigated with Prev/Next buttons and dot indicators.
 
 ### Player Profiles
-Public profile pages showing a player's organized and joined event counts, bio, country, and favourite game.
+Profile pages showing a player's organized and joined event counts, bio, country, and favourite game. Requires login to view.
 
 ### Profile Settings
 Edit personal information including name, country, bio, and favourite game. Changes reflect immediately in the navbar without a page reload.
@@ -73,9 +73,9 @@ The full app is usable on mobile. The navbar collapses into an animated hamburge
 ![Event Detail](public/images/screenshots/screenshot-event-detail.png)
 *Full event information with game banner, capacity progress bar, Full badge, participant list, and join/leave actions.*
 
-### Dashboard
+### Dashboard (Organizer view)
 ![Dashboard](public/images/screenshots/screenshot-dashboard.png)
-*Personal panel showing created (4) and joined (6) events with event counts, edit and delete controls.*
+*Organizer's panel showing created (4) and joined (6) events with event counts, edit and delete controls. Players see a single centered column of joined events only, with no Create Event button.*
 
 ### Create Event
 ![Create Event](public/images/screenshots/screenshot-create-event.png)
@@ -87,7 +87,7 @@ The full app is usable on mobile. The navbar collapses into an animated hamburge
 
 ### Player Profile
 ![Player Profile](public/images/screenshots/screenshot-player-profile.png)
-*Public player profile showing organized/joined event counts, bio, country, and favourite game.*
+*Player profile showing organized/joined event counts, bio, country, and favourite game. Requires login to view.*
 
 ### Profile Settings
 ![Profile](public/images/screenshots/screenshot-profile.png)
@@ -96,6 +96,10 @@ The full app is usable on mobile. The navbar collapses into an animated hamburge
 ### Login
 ![Login](public/images/screenshots/screenshot-login.png)
 *Login page with animated sky background and Cinzel typography.*
+
+### Register
+![Register](public/images/screenshots/screenshot-register.png)
+*Registration form with an Account Type selector — Player or Organizer — determining event-creation permissions.*
 
 ---
 
