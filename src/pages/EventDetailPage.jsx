@@ -5,7 +5,8 @@ import { getEvent, getParticipants, joinEvent, leaveEvent } from '../api/events'
 import Button from '../components/ui/Button'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
-import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import { STATUS_COLORS } from '../utils/statusColors'
+import { capitalize, formatDate } from '../utils/format'
 import ConfirmModal from '../components/ConfirmModal'
 import LoginPromptModal from '../components/LoginPromptModal'
 import PageScreen from '../components/PageScreen'
@@ -87,7 +88,7 @@ export default function EventDetailPage() {
   const isFull = event.participants_count >= event.max_players
   const canJoin = token && !isCreator && !isParticipant && !isFull &&
     (event.status === 'upcoming' || event.status === 'ongoing')
-  const gameImg = getGameImage(event.game?.id)
+  const gameImg = getGameImage(event.game?.name)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">

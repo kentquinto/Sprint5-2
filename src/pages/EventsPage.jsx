@@ -4,7 +4,8 @@ import { MapPin, Calendar, Coins, Users } from 'lucide-react'
 import { getEvents } from '../api/events'
 import { getGames } from '../api/games'
 import { getGameImage } from '../utils/gameImages'
-import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import { STATUS_COLORS } from '../utils/statusColors'
+import { capitalize, formatDate } from '../utils/format'
 import SkyBanner from '../components/SkyBanner'
 import usePageTitle from '../hooks/usePageTitle'
 import { EventCardSkeleton } from '../components/ui/Skeleton'
@@ -205,7 +206,7 @@ export default function EventsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedEvents.map((event, i) => {
-              const img = getGameImage(event.game?.id)
+              const img = getGameImage(event.game?.name)
               return (
               <Link
                 key={event.id}
