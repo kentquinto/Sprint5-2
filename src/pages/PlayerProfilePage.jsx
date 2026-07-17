@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { getPlayer } from '../api/players'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
+import Card from '../components/ui/Card'
 import usePageTitle from '../hooks/usePageTitle'
 
 export default function PlayerProfilePage() {
@@ -39,7 +40,7 @@ export default function PlayerProfilePage() {
           ← Back
         </button>
 
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-4 shadow-sm">
+        <Card className="p-6 mb-4">
           <div className="flex justify-around text-center mb-6">
             <div>
               <p className="text-3xl font-bold text-primary">{player.organized_events_count}</p>
@@ -62,7 +63,7 @@ export default function PlayerProfilePage() {
               <p className="text-sm text-ink-soft">{player.favorite_game?.name || 'Not set'}</p>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )

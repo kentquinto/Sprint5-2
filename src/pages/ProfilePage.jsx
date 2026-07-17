@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { getMe, updateProfile, changePassword, deleteAccount } from '../api/me'
 import { getFormErrors } from '../api/errors'
 import { getGames } from '../api/games'
-import FieldError from '../components/ui/FieldError'
 import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 import ConfirmModal from '../components/ConfirmModal'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Field from '../components/ui/Field'
 import usePageTitle from '../hooks/usePageTitle'
-import { inputCls, labelCls } from '../utils/formStyles'
+import { labelCls } from '../utils/formStyles'
 
 const EMPTY_PW_FORM = { current_password: '', password: '', password_confirmation: '' }
 
@@ -134,9 +135,10 @@ export default function ProfilePage() {
 
       <SkyBanner eyebrow={profile?.name} title="Profile Settings" subtitle="Manage your account information" />
 
-      {/* Form */}
       <div className="max-w-2xl mx-auto px-6 py-10 space-y-6" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
+
+        {/* ── PROFILE INFORMATION ── */}
+        <Card className="p-6">
           <p className="font-cinzel text-xs font-bold text-ink-soft uppercase tracking-widest mb-6">
             Profile Information
           </p>
@@ -154,13 +156,9 @@ export default function ProfilePage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>Name</label>
-                <input type="text" value={form.name}
-                  onChange={e => setForm({ ...form, name: e.target.value })}
-                  required className={inputCls} />
-                <FieldError errors={fieldErrors} name="name" />
-              </div>
+              <Field label="Name" name="name" value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                required errors={fieldErrors} />
               <div>
                 <label className={labelCls}>Email</label>
                 <input type="email" value={profile?.email ?? ''} disabled
@@ -169,41 +167,29 @@ export default function ProfilePage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>Country</label>
-                <input type="text" value={form.country}
-                  onChange={e => setForm({ ...form, country: e.target.value })}
-                  placeholder="e.g. Spain" className={inputCls} />
-                <FieldError errors={fieldErrors} name="country" />
-              </div>
-              <div>
-                <label className={labelCls}>Favourite Game</label>
-                <select value={form.favorite_game_id}
-                  onChange={e => setForm({ ...form, favorite_game_id: e.target.value })}
-                  className={inputCls}>
-                  <option value="">Select a game</option>
-                  {games.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
-              </div>
+              <Field label="Country" name="country" value={form.country}
+                onChange={e => setForm({ ...form, country: e.target.value })}
+                placeholder="e.g. Spain" errors={fieldErrors} />
+              <Field label="Favourite Game" name="favorite_game_id" as="select" value={form.favorite_game_id}
+                onChange={e => setForm({ ...form, favorite_game_id: e.target.value })}
+                errors={fieldErrors}>
+                <option value="">Select a game</option>
+                {games.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </Field>
             </div>
 
-            <div>
-              <label className={labelCls}>Bio</label>
-              <textarea value={form.bio}
-                onChange={e => setForm({ ...form, bio: e.target.value })}
-                rows={4} placeholder="Tell other players about yourself..."
-                className={inputCls} />
-              <FieldError errors={fieldErrors} name="bio" />
-            </div>
+            <Field label="Bio" name="bio" as="textarea" value={form.bio}
+              onChange={e => setForm({ ...form, bio: e.target.value })}
+              rows={4} placeholder="Tell other players about yourself..." errors={fieldErrors} />
 
             <Button type="submit" disabled={saving} className="px-6">
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
-        </div>
+        </Card>
 
         {/* ── CHANGE PASSWORD ── */}
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
+        <Card className="p-6">
           <p className="font-cinzel text-xs font-bold text-ink-soft uppercase tracking-widest mb-6">
             Change Password
           </p>
@@ -220,38 +206,30 @@ export default function ProfilePage() {
           )}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <div>
-              <label className={labelCls}>Current Password</label>
-              <input type="password" value={pwForm.current_password}
-                onChange={e => setPwForm({ ...pwForm, current_password: e.target.value })}
-                required autoComplete="current-password" className={inputCls} />
-              <FieldError errors={pwFieldErrors} name="current_password" />
-            </div>
+            <Field label="Current Password" name="current_password" type="password"
+              value={pwForm.current_password}
+              onChange={e => setPwForm({ ...pwForm, current_password: e.target.value })}
+              required autoComplete="current-password" errors={pwFieldErrors} />
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={labelCls}>New Password</label>
-                <input type="password" value={pwForm.password}
-                  onChange={e => setPwForm({ ...pwForm, password: e.target.value })}
-                  required autoComplete="new-password" className={inputCls} />
-                <FieldError errors={pwFieldErrors} name="password" />
-              </div>
-              <div>
-                <label className={labelCls}>Confirm New Password</label>
-                <input type="password" value={pwForm.password_confirmation}
-                  onChange={e => setPwForm({ ...pwForm, password_confirmation: e.target.value })}
-                  required autoComplete="new-password" className={inputCls} />
-              </div>
+              <Field label="New Password" name="password" type="password"
+                value={pwForm.password}
+                onChange={e => setPwForm({ ...pwForm, password: e.target.value })}
+                required autoComplete="new-password" errors={pwFieldErrors} />
+              <Field label="Confirm New Password" name="password_confirmation" type="password"
+                value={pwForm.password_confirmation}
+                onChange={e => setPwForm({ ...pwForm, password_confirmation: e.target.value })}
+                required autoComplete="new-password" errors={pwFieldErrors} />
             </div>
 
             <Button type="submit" disabled={pwSaving} className="px-6">
               {pwSaving ? 'Updating...' : 'Update Password'}
             </Button>
           </form>
-        </div>
+        </Card>
 
         {/* ── DANGER ZONE ── */}
-        <div className="bg-white/85 backdrop-blur-sm border border-red-200 rounded-2xl p-6 shadow-sm">
+        <Card variant="danger" className="p-6">
           <p className="font-cinzel text-xs font-bold text-red-600 uppercase tracking-widest mb-3">
             Danger Zone
           </p>
@@ -266,7 +244,7 @@ export default function ProfilePage() {
           <Button variant="danger-outline" onClick={() => setShowDelete(true)}>
             Delete Account
           </Button>
-        </div>
+        </Card>
       </div>
 
       {/* ── DELETE ACCOUNT MODAL ── */}

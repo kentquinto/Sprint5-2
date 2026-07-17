@@ -9,6 +9,7 @@ import { capitalize, formatDate } from '../utils/format'
 import SkyBanner from '../components/SkyBanner'
 import usePageTitle from '../hooks/usePageTitle'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import { EventCardSkeleton } from '../components/ui/Skeleton'
 import { compactInputCls } from '../utils/formStyles'
 
@@ -103,7 +104,7 @@ export default function EventsPage() {
       <div className="max-w-7xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
 
         {/* ── FILTER BAR ── every control applies instantly; no submit step */}
-        <div className="mb-6 bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-4 py-2.5 shadow-sm">
+        <Card className="mb-6 px-4 py-2.5">
           <div className="flex gap-2 items-center overflow-x-auto">
             <input
               type="text"
@@ -185,7 +186,7 @@ export default function EventsPage() {
               </button>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* ── EVENTS GRID ── */}
         {loading ? (
@@ -196,16 +197,16 @@ export default function EventsPage() {
         ) : loadError ? (
           /* ── ERROR STATE ── */
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm">
+            <Card className="px-10 py-10 max-w-sm">
               <p className="font-cinzel font-bold text-ink text-sm mb-1">Could not load events</p>
               <p className="text-xs text-ink-soft/70 mb-4">Check your connection and try again.</p>
               <Button size="sm" onClick={fetchEvents}>Retry</Button>
-            </div>
+            </Card>
           </div>
         ) : events.length === 0 ? (
           /* ── EMPTY STATE ── */
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm">
+            <Card className="px-10 py-10 max-w-sm">
               <p className="font-cinzel font-bold text-ink text-sm mb-1">No events found</p>
               <p className="text-xs text-ink-soft/70">
                 {hasActiveFilters ? 'Try adjusting or clearing your filters.' : 'No tournaments have been created yet.'}
@@ -218,7 +219,7 @@ export default function EventsPage() {
                   Clear filters
                 </button>
               )}
-            </div>
+            </Card>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

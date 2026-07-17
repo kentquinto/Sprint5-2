@@ -3,10 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import * as authApi from '../api/auth'
 import { getFormErrors } from '../api/errors'
 import { AuthContext } from '../context/AuthContext'
-import FieldError from '../components/ui/FieldError'
-import { inputCls, labelCls } from '../utils/formStyles'
 import SkyPage from '../components/SkyPage'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Field from '../components/ui/Field'
 import usePageTitle from '../hooks/usePageTitle'
 
 export default function LoginPage() {
@@ -26,7 +26,6 @@ export default function LoginPage() {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  // logs in, then fetches the user profile to populate AuthContext before redirecting home
   async function handleSubmit(e) {
     e.preventDefault()
     setFieldErrors({})
@@ -55,7 +54,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-white drop-shadow-lg">Welcome Back</h1>
         </div>
 
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-8 shadow-sm">
+        <Card className="p-8">
           <p className="text-sm text-ink-soft mb-6">Sign in to your TCG Manager account</p>
 
           {error && (
@@ -65,20 +64,10 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className={labelCls}>Email</label>
-              <input type="email" name="email" value={form.email}
-                onChange={handleChange} required placeholder="you@example.com"
-                className={inputCls} />
-              <FieldError errors={fieldErrors} name="email" />
-            </div>
-            <div>
-              <label className={labelCls}>Password</label>
-              <input type="password" name="password" value={form.password}
-                onChange={handleChange} required placeholder="••••••••"
-                className={inputCls} />
-              <FieldError errors={fieldErrors} name="password" />
-            </div>
+            <Field label="Email" name="email" type="email" value={form.email}
+              onChange={handleChange} required placeholder="you@example.com" errors={fieldErrors} />
+            <Field label="Password" name="password" type="password" value={form.password}
+              onChange={handleChange} required placeholder="••••••••" errors={fieldErrors} />
             <Button type="submit" disabled={loading} className="w-full py-2.5">
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
@@ -88,7 +77,7 @@ export default function LoginPage() {
             Don't have an account?{' '}
             <Link to="/register" className="text-primary hover:underline font-medium">Register</Link>
           </p>
-        </div>
+        </Card>
       </div>
     </SkyPage>
   )

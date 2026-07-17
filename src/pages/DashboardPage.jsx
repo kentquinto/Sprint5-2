@@ -6,6 +6,7 @@ import { getGames } from '../api/games'
 import { createEvent, updateEvent, deleteEvent } from '../api/events'
 import { getFormErrors } from '../api/errors'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
 import { AuthContext } from '../context/AuthContext'
 import { STATUS_COLORS } from '../utils/statusColors'
@@ -195,11 +196,11 @@ export default function DashboardPage() {
         {/* ── ERROR STATE ── shown in place of the lists when loading them failed */}
         {loadError ? (
           <div className="flex justify-center py-16">
-            <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm text-center">
+            <Card className="px-10 py-10 max-w-sm text-center">
               <p className="font-cinzel font-bold text-ink text-sm mb-1">Could not load your events</p>
               <p className="text-xs text-ink-soft/70 mb-4">Check your connection and try again.</p>
               <Button size="sm" onClick={fetchAll}>Retry</Button>
-            </div>
+            </Card>
           </div>
         ) : (
         <>

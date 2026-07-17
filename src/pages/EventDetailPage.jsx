@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
 import { getEvent, getParticipants, joinEvent, leaveEvent } from '../api/events'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS } from '../utils/statusColors'
@@ -135,7 +136,7 @@ export default function EventDetailPage() {
         </div>
 
         {/* Event details + join/leave actions */}
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-4 shadow-sm">
+        <Card className="p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
@@ -200,10 +201,10 @@ export default function EventDetailPage() {
           {token && isParticipant && (
             <Button variant="danger" onClick={() => setPendingAction('leave')}>Leave Event</Button>
           )}
-        </div>
+        </Card>
 
         {/* Participants list — names link to profiles; requires login to view */}
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
+        <Card className="p-6">
           <p className="font-cinzel text-xs font-semibold text-ink-soft/60 uppercase tracking-wide mb-4">
             Participants ({event.participants_count})
           </p>
@@ -223,7 +224,7 @@ export default function EventDetailPage() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   )

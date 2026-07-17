@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 import LoginPromptModal from '../components/LoginPromptModal'
+import Card from '../components/ui/Card'
 import usePageTitle from '../hooks/usePageTitle'
 
 // One entry per leaderboard tab; drives both the fetch and the render below
@@ -91,7 +92,7 @@ export default function StatsPage() {
         </div>
 
         {/* Active table */}
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden shadow-sm">
+        <Card className="overflow-hidden">
           <div className="px-5 py-4 border-b border-mist flex items-center justify-between">
             <h2 className="font-cinzel font-bold text-ink text-sm uppercase tracking-wide">{title}</h2>
             <span className="text-xs text-ink-soft/50 font-cinzel">{active + 1} / 3</span>
@@ -125,7 +126,7 @@ export default function StatsPage() {
               <p className="text-sm text-ink-soft px-5 py-4">No data yet.</p>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )
