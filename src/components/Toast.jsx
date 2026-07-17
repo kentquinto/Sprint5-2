@@ -17,8 +17,8 @@ export default function Toast({ message, onDone, duration = 3500 }) {
 
   return (
     <div
-      className="fixed bottom-6 right-6 z-50 bg-white/90 backdrop-blur-md border border-white/60 text-ink text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2"
-      style={{ animation: 'fadeInUp 0.3s ease-out both' }}
+      className="fixed bottom-6 right-6 z-50 bg-white/90 backdrop-blur-md border border-white/60 text-ink text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-fade-in-up"
+      role="status"
     >
       <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
       {message}

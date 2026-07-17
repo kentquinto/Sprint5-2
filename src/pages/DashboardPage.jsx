@@ -169,7 +169,7 @@ export default function DashboardPage() {
 
       <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} subtitle="Manage your events and track your activity" />
 
-      <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-6xl mx-auto px-6 py-8 animate-fade-in-up">
         {/* Create Event button — organizers only, hidden while the form is open */}
         {!showForm && user?.role === 'organizer' && (
           <div className="flex justify-end mb-6">

@@ -102,7 +102,7 @@ export default function EventsPage() {
 
       <SkyBanner title="All Events" subtitle="Browse and join TCG tournaments near you!" />
 
-      <div className="max-w-7xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in-up">
 
         {/* ── FILTER BAR ── every control applies instantly; no submit step */}
         <Card className="mb-6 px-4 py-2.5">
@@ -165,6 +165,7 @@ export default function EventsPage() {
           <div className="flex gap-2 mt-2.5 overflow-x-auto pb-0.5">
             <button
               onClick={() => handleGamePill('')}
+              aria-pressed={activeGame === ''}
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                 activeGame === ''
                   ? 'bg-primary text-white border-primary'
@@ -177,6 +178,7 @@ export default function EventsPage() {
               <button
                 key={game.id}
                 onClick={() => handleGamePill(game.id)}
+                aria-pressed={activeGame === Number(game.id)}
                 className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                   activeGame === Number(game.id)
                     ? 'bg-primary text-white border-primary'
@@ -270,6 +272,7 @@ export default function EventsPage() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
+                aria-current={p === meta.current_page ? 'page' : undefined}
                 className={`px-3 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
                   p === meta.current_page
                     ? 'bg-primary text-white border-primary'

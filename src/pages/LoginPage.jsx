@@ -46,7 +46,7 @@ export default function LoginPage() {
 
   return (
     <SkyPage>
-      <div className="relative w-full max-w-md" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="relative w-full max-w-md animate-fade-in-up">
         <div className="text-center mb-6">
           <p className="font-cinzel text-xs font-bold uppercase tracking-widest text-white/70 mb-1" style={{ letterSpacing: '0.2em' }}>
             TCG Manager

@@ -55,7 +55,7 @@ export default function StatsPage() {
 
       <SkyBanner title="Leaderboard" subtitle="Top players, organizers, and most active games" />
 
-      <div className="max-w-2xl mx-auto px-6 py-10" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-2xl mx-auto px-6 py-10 animate-fade-in-up">
 
         {/* Navigation */}
         <div className="flex items-center justify-between mb-6">
@@ -71,6 +71,8 @@ export default function StatsPage() {
               <button
                 key={t.key}
                 onClick={() => setActive(i)}
+                aria-label={t.title}
+                aria-pressed={i === active}
                 className="cursor-pointer transition-all"
                 style={{
                   width: i === active ? 24 : 8,

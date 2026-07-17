@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { getPlayer } from '../api/players'
 import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
+import BackButton from '../components/BackButton'
 import PageScreen from '../components/PageScreen'
 import Card from '../components/ui/Card'
 import usePageTitle from '../hooks/usePageTitle'
 
 export default function PlayerProfilePage() {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
   // ── STATE ──
   const [player, setPlayer] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -36,10 +35,8 @@ export default function PlayerProfilePage() {
         subtitle={player.country || undefined}
       />
 
-      <div className="max-w-3xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-6 inline-block transition-colors cursor-pointer">
-          ← Back
-        </button>
+      <div className="max-w-3xl mx-auto px-6 py-8 animate-fade-in-up">
+        <BackButton className="mb-6" />
 
         <Card className="p-6 mb-4">
           <div className="flex justify-around text-center mb-6">

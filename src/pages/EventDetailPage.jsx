@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useCallback } from 'react'
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
 import { getEvent, getParticipants, joinEvent, leaveEvent } from '../api/events'
 import Button from '../components/ui/Button'
@@ -11,14 +11,13 @@ import { capitalize, formatDate } from '../utils/format'
 import ConfirmModal from '../components/ConfirmModal'
 import LoginPromptModal from '../components/LoginPromptModal'
 import PageShell from '../components/PageShell'
+import BackButton from '../components/BackButton'
 import PageScreen from '../components/PageScreen'
 import usePageTitle from '../hooks/usePageTitle'
 import useToast from '../hooks/useToast'
 
 export default function EventDetailPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
   const { token, user } = useContext(AuthContext)
   const showToast = useToast()
 
@@ -110,10 +109,8 @@ export default function EventDetailPage() {
 
       <LoginPromptModal open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
-      <div className="max-w-4xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-4 inline-block transition-colors cursor-pointer">
-          ← Back
-        </button>
+      <div className="max-w-4xl mx-auto px-6 py-8 animate-fade-in-up">
+        <BackButton className="mb-4" />
 
         {/* Game image banner */}
         <div className="relative rounded-2xl overflow-hidden mb-6 bg-gray-800 h-44 shadow-sm">

@@ -36,7 +36,7 @@ export default function ProfilePage() {
     <PageShell>
       <SkyBanner eyebrow={profile.name} title="Profile Settings" subtitle="Manage your account information" />
 
-      <div className="max-w-2xl mx-auto px-6 py-10 space-y-6" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-2xl mx-auto px-6 py-10 space-y-6 animate-fade-in-up">
         <ProfileInfoForm profile={profile} games={games} onUpdated={setProfile} />
         <ChangePasswordForm />
         <DangerZone />

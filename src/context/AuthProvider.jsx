@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { logout as apiLogout } from '../api/auth'
 import { getMe } from '../api/me'
 import { setOnUnauthorized } from '../api/axios'
@@ -16,44 +16,43 @@ export function AuthProvider({ children }) {
     }
   })
 
-  function login(newToken, newUser) {
+  const login = useCallback((newToken, newUser) => {
     setToken(newToken)
     setUser(newUser)
     localStorage.setItem('token', newToken)
     localStorage.setItem('user', JSON.stringify(newUser))
-  }
+  }, [])
 
-  function updateUser(data) {
+  const updateUser = useCallback(data => {
     setUser(prev => {
       const updated = { ...prev, ...data }
       localStorage.setItem('user', JSON.stringify(updated))
       return updated
     })
-  }
+  }, [])
 
   // Local-only clear — used when the token is already invalid server-side
   // (e.g. after account deletion or a 401), so there's no point calling /logout.
-  function clearSession() {
+  const clearSession = useCallback(() => {
     setToken(null)
     setUser(null)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-  }
+  }, [])
 
-  async function logout() {
+  const logout = useCallback(async () => {
     try {
       await apiLogout()
     } catch {
       // token may already be expired — clear locally regardless
     }
     clearSession()
-  }
+  }, [clearSession])
 
-  // Any 401 from the API means the session is dead — clear it. Registered
-  // every render so the interceptor always calls the latest closure.
+  // Any 401 from the API means the session is dead — clear it.
   useEffect(() => {
     setOnUnauthorized(clearSession)
-  })
+  }, [clearSession])
 
   // Validate the cached session once on app load. localStorage may hold an
   // expired token — without this the UI greets a ghost user until the first
@@ -64,10 +63,17 @@ export function AuthProvider({ children }) {
     if (validated.current || !token) return
     validated.current = true
     getMe().then(updateUser).catch(() => {})
-  }, [token])
+  }, [token, updateUser])
+
+  // Memoized so consumers only re-render when the session actually changes,
+  // not on every provider render.
+  const value = useMemo(
+    () => ({ token, user, updateUser, login, logout, clearSession }),
+    [token, user, updateUser, login, logout, clearSession]
+  )
 
   return (
-    <AuthContext.Provider value={{ token, user, updateUser, login, logout, clearSession }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
