@@ -1,7 +1,9 @@
 import { useState, useContext, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import * as authApi from '../api/auth'
+import { getFormErrors } from '../api/errors'
 import { AuthContext } from '../context/AuthContext'
+import FieldError from '../components/ui/FieldError'
 import { inputCls, labelCls } from '../utils/formStyles'
 import SkyPage from '../components/SkyPage'
 import Button from '../components/ui/Button'
@@ -12,6 +14,7 @@ export default function LoginPage() {
 
   // ── STATE ──
   const [form, setForm] = useState({ email: '', password: '' })
+  const [fieldErrors, setFieldErrors] = useState({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -25,6 +28,7 @@ export default function LoginPage() {
   // logs in, then fetches the user profile to populate AuthContext before redirecting home
   async function handleSubmit(e) {
     e.preventDefault()
+    setFieldErrors({})
     setError('')
     setLoading(true)
     try {
@@ -32,7 +36,9 @@ export default function LoginPage() {
       login(token, user)
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Login failed. Check your credentials.')
+      const { fieldErrors: fields, message } = getFormErrors(err, 'Login failed. Check your credentials.')
+      setFieldErrors(fields)
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -63,12 +69,14 @@ export default function LoginPage() {
               <input type="email" name="email" value={form.email}
                 onChange={handleChange} required placeholder="you@example.com"
                 className={inputCls} />
+              <FieldError errors={fieldErrors} name="email" />
             </div>
             <div>
               <label className={labelCls}>Password</label>
               <input type="password" name="password" value={form.password}
                 onChange={handleChange} required placeholder="••••••••"
                 className={inputCls} />
+              <FieldError errors={fieldErrors} name="password" />
             </div>
             <Button type="submit" disabled={loading} className="w-full py-2.5">
               {loading ? 'Signing in...' : 'Sign in'}

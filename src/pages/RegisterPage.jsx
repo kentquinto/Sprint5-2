@@ -1,7 +1,9 @@
 import { useState, useContext, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import * as authApi from '../api/auth'
+import { getFormErrors } from '../api/errors'
 import { AuthContext } from '../context/AuthContext'
+import FieldError from '../components/ui/FieldError'
 import { inputCls, labelCls } from '../utils/formStyles'
 import SkyPage from '../components/SkyPage'
 import Button from '../components/ui/Button'
@@ -12,7 +14,8 @@ export default function RegisterPage() {
 
   // ── STATE ──
   const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '', role: 'player' })
-  const [errors, setErrors] = useState({}) // keyed by field name, plus `general` for non-field errors
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => { document.title = 'Register — TCG Manager' }, [])
@@ -24,19 +27,17 @@ export default function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setErrors({})
+    setFieldErrors({})
+    setError('')
     setLoading(true)
     try {
       const { token, user } = await authApi.register(form)
       login(token, user)
       navigate('/')
     } catch (err) {
-      // 422 = Laravel validation error, one message array per field
-      if (err.response?.status === 422) {
-        setErrors(err.response.data.errors ?? {})
-      } else {
-        setErrors({ general: err.response?.data?.message ?? 'Registration failed.' })
-      }
+      const { fieldErrors: fields, message } = getFormErrors(err, 'Registration failed.')
+      setFieldErrors(fields)
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -55,9 +56,9 @@ export default function RegisterPage() {
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-8 shadow-sm">
           <p className="text-sm text-ink-soft mb-6">Join TCG Manager and start competing</p>
 
-          {errors.general && (
+          {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
-              {errors.general}
+              {error}
             </div>
           )}
 
@@ -66,25 +67,25 @@ export default function RegisterPage() {
               <label className={labelCls}>Name</label>
               <input type="text" name="name" value={form.name}
                 onChange={handleChange} required placeholder="Your name" className={inputCls} />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}
+              <FieldError errors={fieldErrors} name="name" />
             </div>
             <div>
               <label className={labelCls}>Email</label>
               <input type="email" name="email" value={form.email}
                 onChange={handleChange} required placeholder="you@example.com" className={inputCls} />
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email[0]}</p>}
+              <FieldError errors={fieldErrors} name="email" />
             </div>
             <div>
               <label className={labelCls}>Password</label>
               <input type="password" name="password" value={form.password}
                 onChange={handleChange} required placeholder="••••••••" className={inputCls} />
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password[0]}</p>}
+              <FieldError errors={fieldErrors} name="password" />
             </div>
             <div>
               <label className={labelCls}>Confirm Password</label>
               <input type="password" name="password_confirmation" value={form.password_confirmation}
                 onChange={handleChange} required placeholder="••••••••" className={inputCls} />
-              {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation[0]}</p>}
+              <FieldError errors={fieldErrors} name="password_confirmation" />
             </div>
             <div>
               <label className={labelCls}>Account Type</label>
@@ -92,7 +93,7 @@ export default function RegisterPage() {
                 <option value="player">Player</option>
                 <option value="organizer">Organizer</option>
               </select>
-              {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role[0]}</p>}
+              <FieldError errors={fieldErrors} name="role" />
             </div>
             <Button type="submit" disabled={loading} className="w-full py-2.5">
               {loading ? 'Creating account...' : 'Create account'}

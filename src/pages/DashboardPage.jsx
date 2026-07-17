@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { getOrganizedEvents, getJoinedEvents } from '../api/me'
 import { getGames } from '../api/games'
 import { createEvent, updateEvent, deleteEvent } from '../api/events'
+import { getFormErrors } from '../api/errors'
 import Button from '../components/ui/Button'
 import { Skeleton } from '../components/ui/Skeleton'
 import { AuthContext } from '../context/AuthContext'
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [formError, setFormError] = useState('')
+  const [formFieldErrors, setFormFieldErrors] = useState({})
   const [formLoading, setFormLoading] = useState(false)
 
   // delete confirmation modal — deleteId set means the modal is open for that event
@@ -69,6 +71,7 @@ export default function DashboardPage() {
     setEditingId(null)
     setForm(EMPTY_FORM)
     setFormError('')
+    setFormFieldErrors({})
     setShowForm(true)
   }, [])
 
@@ -89,6 +92,7 @@ export default function DashboardPage() {
       game_id: event.game?.id ?? '',
     })
     setFormError('')
+    setFormFieldErrors({})
     setShowForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -103,6 +107,7 @@ export default function DashboardPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setFormError('')
+    setFormFieldErrors({})
     setFormLoading(true)
     try {
       if (editingId) {
@@ -115,7 +120,9 @@ export default function DashboardPage() {
       cancelForm()
       await fetchAll()
     } catch (err) {
-      setFormError(err.response?.data?.message ?? 'Something went wrong.')
+      const { fieldErrors: fields, message } = getFormErrors(err)
+      setFormFieldErrors(fields)
+      setFormError(message)
     } finally {
       setFormLoading(false)
     }
@@ -173,6 +180,7 @@ export default function DashboardPage() {
             games={games}
             editingId={editingId}
             formError={formError}
+            fieldErrors={formFieldErrors}
             formLoading={formLoading}
             onSubmit={handleSubmit}
             onCancel={cancelForm}

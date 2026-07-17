@@ -1,7 +1,9 @@
 import { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMe, updateProfile, changePassword, deleteAccount } from '../api/me'
+import { getFormErrors } from '../api/errors'
 import { getGames } from '../api/games'
+import FieldError from '../components/ui/FieldError'
 import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
@@ -23,6 +25,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
 
   const [form, setForm] = useState({
     name: '', bio: '', country: '', favorite_game_id: '',
@@ -64,6 +67,7 @@ export default function ProfilePage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+    setFieldErrors({})
     setSuccess(false)
     setSaving(true)
     try {
@@ -72,7 +76,9 @@ export default function ProfilePage() {
       updateUser({ name: updated.name })
       setSuccess(true)
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Could not save changes.')
+      const { fieldErrors: fields, message } = getFormErrors(err, 'Could not save changes.')
+      setFieldErrors(fields)
+      setError(message)
     } finally {
       setSaving(false)
     }
@@ -89,11 +95,9 @@ export default function ProfilePage() {
       setPwSuccess(true)
       setPwForm(EMPTY_PW_FORM)
     } catch (err) {
-      if (err.response?.status === 422 && err.response.data?.errors) {
-        setPwFieldErrors(err.response.data.errors)
-      } else {
-        setPwError(err.response?.data?.message ?? 'Could not update password.')
-      }
+      const { fieldErrors: fields, message } = getFormErrors(err, 'Could not update password.')
+      setPwFieldErrors(fields)
+      setPwError(message)
     } finally {
       setPwSaving(false)
     }
@@ -108,11 +112,8 @@ export default function ProfilePage() {
       clearSession()
       navigate('/')
     } catch (err) {
-      setDeleteError(
-        err.response?.data?.errors?.password?.[0]
-        ?? err.response?.data?.message
-        ?? 'Could not delete account.'
-      )
+      const { fieldErrors: fields, message } = getFormErrors(err, 'Could not delete account.')
+      setDeleteError(fields.password?.[0] ?? message)
       setDeleteLoading(false)
     }
   }
@@ -156,6 +157,7 @@ export default function ProfilePage() {
                 <input type="text" value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value })}
                   required className={inputCls} />
+                <FieldError errors={fieldErrors} name="name" />
               </div>
               <div>
                 <label className={labelCls}>Email</label>
@@ -170,6 +172,7 @@ export default function ProfilePage() {
                 <input type="text" value={form.country}
                   onChange={e => setForm({ ...form, country: e.target.value })}
                   placeholder="e.g. Spain" className={inputCls} />
+                <FieldError errors={fieldErrors} name="country" />
               </div>
               <div>
                 <label className={labelCls}>Favourite Game</label>
@@ -188,6 +191,7 @@ export default function ProfilePage() {
                 onChange={e => setForm({ ...form, bio: e.target.value })}
                 rows={4} placeholder="Tell other players about yourself..."
                 className={inputCls} />
+              <FieldError errors={fieldErrors} name="bio" />
             </div>
 
             <Button type="submit" disabled={saving} className="px-6">
@@ -219,9 +223,7 @@ export default function ProfilePage() {
               <input type="password" value={pwForm.current_password}
                 onChange={e => setPwForm({ ...pwForm, current_password: e.target.value })}
                 required autoComplete="current-password" className={inputCls} />
-              {pwFieldErrors.current_password && (
-                <p className="text-xs text-red-600 mt-1">{pwFieldErrors.current_password[0]}</p>
-              )}
+              <FieldError errors={pwFieldErrors} name="current_password" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -230,9 +232,7 @@ export default function ProfilePage() {
                 <input type="password" value={pwForm.password}
                   onChange={e => setPwForm({ ...pwForm, password: e.target.value })}
                   required autoComplete="new-password" className={inputCls} />
-                {pwFieldErrors.password && (
-                  <p className="text-xs text-red-600 mt-1">{pwFieldErrors.password[0]}</p>
-                )}
+                <FieldError errors={pwFieldErrors} name="password" />
               </div>
               <div>
                 <label className={labelCls}>Confirm New Password</label>
