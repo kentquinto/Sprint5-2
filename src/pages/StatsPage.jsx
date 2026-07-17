@@ -44,7 +44,7 @@ export default function StatsPage() {
   function next() { setActive(a => (a + 1) % 3) }
 
   if (loading)   return <PageScreen message="Loading stats..." />
-  if (loadError) return <PageScreen message="Could not load stats. Please try again." />
+  if (loadError) return <PageScreen message="Could not load stats. Please try again." error />
 
   const { key, title, nameKey, countKey, countLabel, linkPrefix } = TABLES[active]
   const rows = data[key]
@@ -70,7 +70,7 @@ export default function StatsPage() {
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={prev}
-            className="px-4 py-2 rounded-full bg-white/80 hover:bg-white border border-white/60 text-sm font-medium text-[#0F172A] transition-colors cursor-pointer shadow-sm"
+            className="px-4 py-2 rounded-full bg-white/80 hover:bg-white border border-white/60 text-sm font-medium text-ink transition-colors cursor-pointer shadow-sm"
           >
             ← Prev
           </button>
@@ -85,7 +85,7 @@ export default function StatsPage() {
                   width: i === active ? 24 : 8,
                   height: 8,
                   borderRadius: 4,
-                  background: i === active ? '#2563EB' : 'rgba(255,255,255,0.6)',
+                  background: i === active ? 'var(--color-primary)' : 'rgba(255,255,255,0.6)',
                   border: 'none',
                   padding: 0,
                 }}
@@ -95,7 +95,7 @@ export default function StatsPage() {
 
           <button
             onClick={next}
-            className="px-4 py-2 rounded-full bg-white/80 hover:bg-white border border-white/60 text-sm font-medium text-[#0F172A] transition-colors cursor-pointer shadow-sm"
+            className="px-4 py-2 rounded-full bg-white/80 hover:bg-white border border-white/60 text-sm font-medium text-ink transition-colors cursor-pointer shadow-sm"
           >
             Next →
           </button>
@@ -103,11 +103,11 @@ export default function StatsPage() {
 
         {/* Active table */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-5 py-4 border-b border-[#DCEEFF] flex items-center justify-between">
-            <h2 className="font-cinzel font-bold text-[#0F172A] text-sm uppercase tracking-wide">{title}</h2>
-            <span className="text-xs text-[#334155]/50 font-cinzel">{active + 1} / 3</span>
+          <div className="px-5 py-4 border-b border-mist flex items-center justify-between">
+            <h2 className="font-cinzel font-bold text-ink text-sm uppercase tracking-wide">{title}</h2>
+            <span className="text-xs text-ink-soft/50 font-cinzel">{active + 1} / 3</span>
           </div>
-          <div className="divide-y divide-[#DCEEFF]/60">
+          <div className="divide-y divide-mist/60">
             {rows.map((row, idx) => (
               <div key={row.id ?? idx} className="flex items-center justify-between px-5 py-3">
                 <div className="flex items-center gap-3">
@@ -119,21 +119,21 @@ export default function StatsPage() {
                     {idx + 1}
                   </span>
                   {linkPrefix ? (
-                    <Link to={`${linkPrefix}/${row.id}`} className="text-sm font-medium text-[#2563EB] hover:underline"
+                    <Link to={`${linkPrefix}/${row.id}`} className="text-sm font-medium text-primary hover:underline"
                       onClick={e => { if (!token) { e.preventDefault(); setShowLoginPrompt(true) } }}>
                       {row[nameKey]}
                     </Link>
                   ) : (
-                    <span className="text-sm font-medium text-[#0F172A]">{row[nameKey]}</span>
+                    <span className="text-sm font-medium text-ink">{row[nameKey]}</span>
                   )}
                 </div>
-                <span className="text-sm text-[#334155]">
-                  {row[countKey]} <span className="text-xs text-[#334155]/60">{countLabel}</span>
+                <span className="text-sm text-ink-soft">
+                  {row[countKey]} <span className="text-xs text-ink-soft/60">{countLabel}</span>
                 </span>
               </div>
             ))}
             {rows.length === 0 && (
-              <p className="text-sm text-[#334155] px-5 py-4">No data yet.</p>
+              <p className="text-sm text-ink-soft px-5 py-4">No data yet.</p>
             )}
           </div>
         </div>

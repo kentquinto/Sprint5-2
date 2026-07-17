@@ -1,6 +1,8 @@
 import { useState, useEffect, useContext } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
+import { MapPin, Calendar, Coins, Users } from 'lucide-react'
 import api from '../api/axios'
+import Button from '../components/ui/Button'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
@@ -75,8 +77,8 @@ export default function EventDetailPage() {
     }
   }
 
-  if (loading) return <PageScreen message="Loading..." />
-  if (!event)  return <PageScreen message="Event not found." />
+  if (loading) return <PageScreen message="Loading event..." />
+  if (!event)  return <PageScreen message="Event not found." error />
 
   // ── DERIVED ── who's viewing and what actions they're allowed to take
   const isParticipant = participants.some(p => Number(p.id) === Number(user?.id))
@@ -132,7 +134,7 @@ export default function EventDetailPage() {
             <h1 className="text-2xl font-bold leading-tight drop-shadow">{event.title}</h1>
             <p className="text-white/70 text-xs mt-1 drop-shadow">
               by{' '}
-              <Link to={`/players/${event.creator?.id}`} className="text-[#93C5FD] hover:underline"
+              <Link to={`/players/${event.creator?.id}`} className="text-sky-300 hover:underline"
                 onClick={e => { if (!token) { e.preventDefault(); setShowLoginPrompt(true) } }}>
                 {event.creator?.name}
               </Link>
@@ -153,26 +155,26 @@ export default function EventDetailPage() {
                 </span>
               )}
             </div>
-            <span className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide">
+            <span className="font-cinzel text-xs font-semibold text-ink-soft/60 uppercase tracking-wide">
               {event.game?.name}
             </span>
           </div>
 
-          <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-3">
+          <p className="font-cinzel text-xs font-semibold text-ink-soft/60 uppercase tracking-wide mb-3">
             Event Details
           </p>
-          <div className="space-y-2 text-sm text-[#334155] mb-6">
-            <p>📍 {event.location}</p>
-            <p>📅 {formatDate(event.date_time)} · {new Date(event.date_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
-            <p>💰 {event.entry_fee > 0 ? `€${event.entry_fee}` : 'Free entry'}</p>
+          <div className="space-y-2 text-sm text-ink-soft mb-6">
+            <p className="flex items-center gap-2"><MapPin size={15} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{event.location}</p>
+            <p className="flex items-center gap-2"><Calendar size={15} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{formatDate(event.date_time)} · {new Date(event.date_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p className="flex items-center gap-2"><Coins size={15} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{event.entry_fee > 0 ? `€${event.entry_fee}` : 'Free entry'}</p>
             <div>
-              <p className="mb-1">👥 {event.participants_count} / {event.max_players} players</p>
-              <div className="w-full h-1.5 bg-[#e2e8f0] rounded-full overflow-hidden">
+              <p className="mb-1 flex items-center gap-2"><Users size={15} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{event.participants_count} / {event.max_players} players</p>
+              <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
                     width: `${Math.min((event.participants_count / event.max_players) * 100, 100)}%`,
-                    background: isFull ? '#ef4444' : event.participants_count / event.max_players >= 0.75 ? '#f59e0b' : '#2563EB',
+                    background: isFull ? 'var(--color-red-500)' : event.participants_count / event.max_players >= 0.75 ? 'var(--color-amber-500)' : 'var(--color-primary)',
                   }}
                 />
               </div>
@@ -181,10 +183,10 @@ export default function EventDetailPage() {
 
           {event.description && (
             <>
-              <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-2">
+              <p className="font-cinzel text-xs font-semibold text-ink-soft/60 uppercase tracking-wide mb-2">
                 Description
               </p>
-              <p className="text-sm text-[#334155] mb-6">{event.description}</p>
+              <p className="text-sm text-ink-soft mb-6">{event.description}</p>
             </>
           )}
 
@@ -198,41 +200,32 @@ export default function EventDetailPage() {
             <p className="text-sm text-red-500 font-semibold">This event is full.</p>
           )}
           {!token && (
-            <Link to="/login"
-              className="inline-block bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors shadow-sm">
-              Login to Join
-            </Link>
+            <Button to="/login">Login to Join</Button>
           )}
           {canJoin && (
-            <button onClick={() => setPendingAction('join')}
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
-              Join Event
-            </button>
+            <Button onClick={() => setPendingAction('join')}>Join Event</Button>
           )}
           {token && isParticipant && (
-            <button onClick={() => setPendingAction('leave')}
-              className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
-              Leave Event
-            </button>
+            <Button variant="danger" onClick={() => setPendingAction('leave')}>Leave Event</Button>
           )}
         </div>
 
         {/* Participants list — names link to profiles; requires login to view */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
-          <p className="font-cinzel text-xs font-semibold text-[#334155]/60 uppercase tracking-wide mb-4">
+          <p className="font-cinzel text-xs font-semibold text-ink-soft/60 uppercase tracking-wide mb-4">
             Participants ({event.participants_count})
           </p>
           {!token ? (
-            <p className="text-sm text-[#334155]/60">
-              <Link to="/login" className="text-[#2563EB] hover:underline font-medium">Login</Link> to view participants.
+            <p className="text-sm text-ink-soft/60">
+              <Link to="/login" className="text-primary hover:underline font-medium">Login</Link> to view participants.
             </p>
           ) : participants.length === 0 ? (
-            <p className="text-sm text-[#334155]/60">No participants yet.</p>
+            <p className="text-sm text-ink-soft/60">No participants yet.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {participants.map(p => (
                 <Link key={p.id} to={`/players/${p.id}`}
-                  className="bg-white/70 hover:bg-white text-[#0F172A] text-sm px-3 py-1 rounded-full border border-[#DCEEFF] hover:border-[#60A5FA] transition-colors">
+                  className="bg-white/70 hover:bg-white text-ink text-sm px-3 py-1 rounded-full border border-mist hover:border-sky-bright transition-colors">
                   {p.name}
                 </Link>
               ))}
