@@ -290,7 +290,6 @@ export default function ProfilePage() {
               value={deletePassword}
               onChange={e => setDeletePassword(e.target.value)}
               required
-              autoFocus
               autoComplete="current-password"
               className="w-full bg-white border border-mist rounded-lg px-3 py-2 text-sm text-ink placeholder-slate-400 focus:outline-none focus:border-primary"
             />
