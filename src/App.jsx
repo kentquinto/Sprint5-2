@@ -17,7 +17,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Navbar />
-      <main className="min-h-screen bg-gray-50 text-gray-900">
+      <main className="min-h-screen">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<EventsPage />} />
