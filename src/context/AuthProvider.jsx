@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { logout as apiLogout } from '../api/auth'
+import { getMe } from '../api/me'
+import { setOnUnauthorized } from '../api/axios'
 import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }) {
@@ -30,7 +32,7 @@ export function AuthProvider({ children }) {
   }
 
   // Local-only clear — used when the token is already invalid server-side
-  // (e.g. after account deletion), so there's no point calling /logout.
+  // (e.g. after account deletion or a 401), so there's no point calling /logout.
   function clearSession() {
     setToken(null)
     setUser(null)
@@ -46,6 +48,23 @@ export function AuthProvider({ children }) {
     }
     clearSession()
   }
+
+  // Any 401 from the API means the session is dead — clear it. Registered
+  // every render so the interceptor always calls the latest closure.
+  useEffect(() => {
+    setOnUnauthorized(clearSession)
+  })
+
+  // Validate the cached session once on app load. localStorage may hold an
+  // expired token — without this the UI greets a ghost user until the first
+  // API call fails. A 401 here is handled by the interceptor above; other
+  // errors (network down) keep the cached user rather than logging out.
+  const validated = useRef(false)
+  useEffect(() => {
+    if (validated.current || !token) return
+    validated.current = true
+    getMe().then(updateUser).catch(() => {})
+  }, [token])
 
   return (
     <AuthContext.Provider value={{ token, user, updateUser, login, logout, clearSession }}>
