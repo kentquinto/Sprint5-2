@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useCallback } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
-import api from '../api/axios'
+import { getEvent, getParticipants, joinEvent, leaveEvent } from '../api/events'
 import Button from '../components/ui/Button'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
@@ -30,8 +30,7 @@ export default function EventDetailPage() {
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const eventRes = await api.get(`/events/${id}`)
-      const eventData = eventRes.data.data ?? eventRes.data
+      const eventData = await getEvent(id)
       setEvent(eventData)
       document.title = `${eventData.title} — TCG Manager`
     } catch {
@@ -44,8 +43,7 @@ export default function EventDetailPage() {
     // just not the participants list.
     if (token) {
       try {
-        const participantsRes = await api.get(`/events/${id}/participants`)
-        setParticipants(participantsRes.data.data ?? participantsRes.data ?? [])
+        setParticipants(await getParticipants(id))
       } catch {
         setParticipants([])
       }
@@ -61,10 +59,10 @@ export default function EventDetailPage() {
     setActionLoading(true)
     try {
       if (pendingAction === 'join') {
-        await api.post(`/events/${id}/participants`)
+        await joinEvent(id)
         setToast('You have joined the event!')
       } else {
-        await api.delete(`/events/${id}/participants`)
+        await leaveEvent(id)
         setToast('You have left the event.')
       }
       setPendingAction(null)

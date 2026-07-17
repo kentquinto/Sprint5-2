@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import api from '../api/axios'
+import * as authApi from '../api/auth'
 import { AuthContext } from '../context/AuthContext'
 import { inputCls, labelCls } from '../utils/formStyles'
 import SkyPage from '../components/SkyPage'
@@ -28,10 +28,8 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const res = await api.post('/login', form)
-      const token = res.data.token
-      const meRes = await api.get('/me', { headers: { Authorization: `Bearer ${token}` } })
-      login(token, meRes.data.data ?? meRes.data)
+      const { token, user } = await authApi.login(form)
+      login(token, user)
       navigate('/')
     } catch (err) {
       setError(err.response?.data?.message ?? 'Login failed. Check your credentials.')

@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import api from '../api/axios'
+import { getPlayerStats, getGameStats, getOrganizerStats } from '../api/stats'
 import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
@@ -27,15 +27,11 @@ export default function StatsPage() {
   // ── DATA FETCHING ── all three leaderboards loaded together up front
   useEffect(() => {
     Promise.all([
-      api.get('/stats/players'),
-      api.get('/stats/games'),
-      api.get('/stats/organizers'),
-    ]).then(([p, g, o]) => {
-      setData({
-        players:    p.data.data ?? p.data,
-        games:      g.data.data ?? g.data,
-        organizers: o.data.data ?? o.data,
-      })
+      getPlayerStats(),
+      getGameStats(),
+      getOrganizerStats(),
+    ]).then(([players, games, organizers]) => {
+      setData({ players, games, organizers })
     }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 

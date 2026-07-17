@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
-import api from '../api/axios'
+import { getEvents } from '../api/events'
+import { getGames } from '../api/games'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
 import SkyBanner from '../components/SkyBanner'
@@ -25,7 +26,7 @@ export default function EventsPage() {
 
   // ── DATA FETCHING ──
   useEffect(() => {
-    api.get('/games').then(res => setGames(res.data.data ?? res.data))
+    getGames().then(setGames)
   }, [])
 
   // Debounce search — fires 400ms after the user stops typing
@@ -44,9 +45,9 @@ export default function EventsPage() {
       if (filters.status)  params.status = filters.status
       if (activeGame)      params.game   = activeGame
       if (page > 1)        params.page   = page
-      const res = await api.get('/events', { params })
-      setEvents(res.data.data ?? res.data)
-      setMeta(res.data.meta)
+      const { events: list, meta: pageMeta } = await getEvents(params)
+      setEvents(list)
+      setMeta(pageMeta)
     } finally {
       setLoading(false)
     }

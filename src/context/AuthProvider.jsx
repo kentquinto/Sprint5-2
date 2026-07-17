@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import api from '../api/axios'
+import { logout as apiLogout } from '../api/auth'
 import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }) {
@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     try {
-      await api.post('/logout')
+      await apiLogout()
     } catch {
       // token may already be expired — clear locally regardless
     }

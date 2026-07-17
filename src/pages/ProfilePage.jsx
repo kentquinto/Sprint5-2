@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api/axios'
+import { getMe, updateProfile, changePassword, deleteAccount } from '../api/me'
+import { getGames } from '../api/games'
 import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
@@ -45,18 +46,17 @@ export default function ProfilePage() {
   // ── DATA FETCHING ── loads the current user's profile + game list to populate the form
   useEffect(() => {
     Promise.all([
-      api.get('/me'),
-      api.get('/games'),
-    ]).then(([meRes, gamesRes]) => {
-      const data = meRes.data.data ?? meRes.data
-      setProfile(data)
+      getMe(),
+      getGames(),
+    ]).then(([me, gameList]) => {
+      setProfile(me)
       setForm({
-        name: data.name ?? '',
-        bio: data.bio ?? '',
-        country: data.country ?? '',
-        favorite_game_id: data.favorite_game?.id ?? '',
+        name: me.name ?? '',
+        bio: me.bio ?? '',
+        country: me.country ?? '',
+        favorite_game_id: me.favorite_game?.id ?? '',
       })
-      setGames(gamesRes.data.data ?? gamesRes.data)
+      setGames(gameList)
     }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 
@@ -67,8 +67,7 @@ export default function ProfilePage() {
     setSuccess(false)
     setSaving(true)
     try {
-      const res = await api.put('/me', form)
-      const updated = res.data.data ?? res.data
+      const updated = await updateProfile(form)
       setProfile(updated)
       updateUser({ name: updated.name })
       setSuccess(true)
@@ -86,7 +85,7 @@ export default function ProfilePage() {
     setPwSuccess(false)
     setPwSaving(true)
     try {
-      await api.put('/me/password', pwForm)
+      await changePassword(pwForm)
       setPwSuccess(true)
       setPwForm(EMPTY_PW_FORM)
     } catch (err) {
@@ -104,7 +103,7 @@ export default function ProfilePage() {
     setDeleteError('')
     setDeleteLoading(true)
     try {
-      await api.delete('/me', { data: { password: deletePassword } })
+      await deleteAccount(deletePassword)
       // token is invalid server-side now — clear locally, no /logout call
       clearSession()
       navigate('/')

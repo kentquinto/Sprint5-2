@@ -1,7 +1,9 @@
 import { useState, useEffect, useContext, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import api from '../api/axios'
+import { getOrganizedEvents, getJoinedEvents } from '../api/me'
+import { getGames } from '../api/games'
+import { createEvent, updateEvent, deleteEvent } from '../api/events'
 import Button from '../components/ui/Button'
 import { Skeleton } from '../components/ui/Skeleton'
 import { AuthContext } from '../context/AuthContext'
@@ -45,12 +47,12 @@ export default function DashboardPage() {
     setLoading(true)
     try {
       const isOrganizer = user?.role === 'organizer'
-      const [orgRes, joinRes] = await Promise.all([
-        isOrganizer ? api.get('/me/organized-events') : Promise.resolve(null),
-        api.get('/me/joined-events'),
+      const [organized, joined] = await Promise.all([
+        isOrganizer ? getOrganizedEvents() : Promise.resolve(null),
+        getJoinedEvents(),
       ])
-      if (orgRes) setOrganizedEvents(orgRes.data.data ?? orgRes.data)
-      setJoinedEvents(joinRes.data.data ?? joinRes.data)
+      if (organized) setOrganizedEvents(organized)
+      setJoinedEvents(joined)
     } finally {
       setLoading(false)
     }
@@ -59,7 +61,7 @@ export default function DashboardPage() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   useEffect(() => {
-    api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
+    getGames().then(setGames).catch(() => {})
   }, [])
 
   // ── FORM HANDLERS ──
@@ -104,10 +106,10 @@ export default function DashboardPage() {
     setFormLoading(true)
     try {
       if (editingId) {
-        await api.put(`/events/${editingId}`, form)
+        await updateEvent(editingId, form)
         setToast('Event updated successfully!')
       } else {
-        await api.post('/events', form)
+        await createEvent(form)
         setToast('Event created successfully!')
       }
       cancelForm()
@@ -124,7 +126,7 @@ export default function DashboardPage() {
     setDeleteLoading(true)
     setDeleteError('')
     try {
-      await api.delete(`/events/${deleteId}`)
+      await deleteEvent(deleteId)
       setDeleteId(null)
       setToast('Event deleted.')
       fetchAll()

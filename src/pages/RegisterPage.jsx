@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import api from '../api/axios'
+import * as authApi from '../api/auth'
 import { AuthContext } from '../context/AuthContext'
 import { inputCls, labelCls } from '../utils/formStyles'
 import SkyPage from '../components/SkyPage'
@@ -27,10 +27,8 @@ export default function RegisterPage() {
     setErrors({})
     setLoading(true)
     try {
-      const res = await api.post('/register', form)
-      const token = res.data.token
-      const meRes = await api.get('/me', { headers: { Authorization: `Bearer ${token}` } })
-      login(token, meRes.data.data ?? meRes.data)
+      const { token, user } = await authApi.register(form)
+      login(token, user)
       navigate('/')
     } catch (err) {
       // 422 = Laravel validation error, one message array per field

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import api from '../api/axios'
+import { getPlayer } from '../api/players'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 
@@ -15,8 +15,8 @@ export default function PlayerProfilePage() {
 
   // ── DATA FETCHING ── public profile for whichever player id is in the URL
   useEffect(() => {
-    api.get(`/players/${id}`)
-      .then(res => setPlayer(res.data.data ?? res.data))
+    getPlayer(id)
+      .then(setPlayer)
       .catch(() => setError('Player not found.'))
       .finally(() => setLoading(false))
   }, [id])
