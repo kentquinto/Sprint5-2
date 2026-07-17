@@ -6,6 +6,7 @@ import { getGames } from '../api/games'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS } from '../utils/statusColors'
 import { capitalize, formatDate } from '../utils/format'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import usePageTitle from '../hooks/usePageTitle'
 import Button from '../components/ui/Button'
@@ -97,7 +98,7 @@ export default function EventsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
 
       <SkyBanner title="All Events" subtitle="Browse and join TCG tournaments near you!" />
 
@@ -281,6 +282,6 @@ export default function EventsPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   )
 }

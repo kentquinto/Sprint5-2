@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { getPlayer } from '../api/players'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 import Card from '../components/ui/Card'
@@ -28,7 +29,7 @@ export default function PlayerProfilePage() {
   if (error)   return <PageScreen message={error} error />
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
       <SkyBanner
         eyebrow="Player Profile"
         title={player.name}
@@ -65,6 +66,6 @@ export default function PlayerProfilePage() {
           </div>
         </Card>
       </div>
-    </div>
+    </PageShell>
   )
 }

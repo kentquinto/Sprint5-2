@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { getPlayerStats, getGameStats, getOrganizerStats } from '../api/stats'
 import { AuthContext } from '../context/AuthContext'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 import LoginPromptModal from '../components/LoginPromptModal'
@@ -48,7 +49,7 @@ export default function StatsPage() {
   const rows = data[key]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
 
       <LoginPromptModal open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
@@ -128,6 +129,6 @@ export default function StatsPage() {
           </div>
         </Card>
       </div>
-    </div>
+    </PageShell>
   )
 }

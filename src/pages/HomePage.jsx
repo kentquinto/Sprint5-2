@@ -1,6 +1,7 @@
 import { useContext, useState } from 'react'
 import { AuthContext } from '../context/AuthContext'
 import Button from '../components/ui/Button'
+import CloudLayer from '../components/CloudLayer'
 import usePageTitle from '../hooks/usePageTitle'
 
 // ─── SPRITE HELPER ──────────────────────────────────────────────────────────
@@ -95,13 +96,9 @@ export default function HomePage() {
       {/* ── SKY ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100" />
 
-      {/* ── SUN ── */}
-      <Sprite src="/images/items/sun.png" style={{ width: 80, top: 28, right: '7%' }} />
-
-      {/* ── CLOUDS ── drift via the cloudDrift keyframe in index.css */}
-      {CLOUDS.map(({ src, w, t, dur, delay }, i) => (
-        <Sprite key={i} src={src} style={{ width: w, top: t, animation: `cloudDrift ${dur} linear infinite`, animationDelay: delay }} />
-      ))}
+      {/* ── SUN + CLOUDS ── scene-tuned positions; shadows below stay in sync
+          because they reuse the same dur/delay values */}
+      <CloudLayer clouds={CLOUDS} sun={{ width: 80, top: 28, right: '7%' }} />
 
       {/* ── WAVE ── blends the sky gradient into the ground below */}
       <svg className="absolute w-full select-none pointer-events-none" style={{ bottom: 108 }}

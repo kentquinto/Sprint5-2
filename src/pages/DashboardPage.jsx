@@ -12,6 +12,7 @@ import { AuthContext } from '../context/AuthContext'
 import { STATUS_COLORS } from '../utils/statusColors'
 import { capitalize, formatDate } from '../utils/format'
 import ConfirmModal from '../components/ConfirmModal'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import EventForm from '../components/EventForm'
 import usePageTitle from '../hooks/usePageTitle'
@@ -152,7 +153,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
       {deleteId && (
         <ConfirmModal
           title="Delete Event?"
@@ -288,6 +289,6 @@ export default function DashboardPage() {
         </>
         )}
       </div>
-    </div>
+    </PageShell>
   )
 }

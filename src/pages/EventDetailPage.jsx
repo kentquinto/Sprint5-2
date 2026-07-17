@@ -10,6 +10,7 @@ import { STATUS_COLORS } from '../utils/statusColors'
 import { capitalize, formatDate } from '../utils/format'
 import ConfirmModal from '../components/ConfirmModal'
 import LoginPromptModal from '../components/LoginPromptModal'
+import PageShell from '../components/PageShell'
 import PageScreen from '../components/PageScreen'
 import usePageTitle from '../hooks/usePageTitle'
 import useToast from '../hooks/useToast'
@@ -92,7 +93,7 @@ export default function EventDetailPage() {
   const gameImg = getGameImage(event.game?.name)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
       {pendingAction && (
         <ConfirmModal
           title={pendingAction === 'join' ? 'Join Event?' : 'Leave Event?'}
@@ -226,6 +227,6 @@ export default function EventDetailPage() {
           )}
         </Card>
       </div>
-    </div>
+    </PageShell>
   )
 }

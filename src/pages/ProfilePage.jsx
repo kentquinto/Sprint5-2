@@ -4,6 +4,7 @@ import { getMe, updateProfile, changePassword, deleteAccount } from '../api/me'
 import { getFormErrors } from '../api/errors'
 import { getGames } from '../api/games'
 import { AuthContext } from '../context/AuthContext'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 import ConfirmModal from '../components/ConfirmModal'
@@ -131,7 +132,7 @@ export default function ProfilePage() {
   if (loadError) return <PageScreen message="Could not load profile. Please try again." error />
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
 
       <SkyBanner eyebrow={profile?.name} title="Profile Settings" subtitle="Manage your account information" />
 
@@ -274,6 +275,6 @@ export default function ProfilePage() {
           </div>
         </ConfirmModal>
       )}
-    </div>
+    </PageShell>
   )
 }
