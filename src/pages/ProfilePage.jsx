@@ -1,12 +1,17 @@
 import { useState, useEffect, useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
+import ConfirmModal from '../components/ConfirmModal'
 import { inputCls, labelCls } from '../utils/formStyles'
 
+const EMPTY_PW_FORM = { current_password: '', password: '', password_confirmation: '' }
+
 export default function ProfilePage() {
-  const { updateUser } = useContext(AuthContext)
+  const { user, updateUser, clearSession } = useContext(AuthContext)
+  const navigate = useNavigate()
 
   // ── STATE ──
   const [profile, setProfile] = useState(null)
@@ -20,6 +25,21 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     name: '', bio: '', country: '', favorite_game_id: '',
   })
+
+  // change password form — own state so its errors never mix with the profile form
+  const [pwForm, setPwForm] = useState(EMPTY_PW_FORM)
+  const [pwFieldErrors, setPwFieldErrors] = useState({}) // 422 errors keyed by field
+  const [pwError, setPwError] = useState('')
+  const [pwSuccess, setPwSuccess] = useState(false)
+  const [pwSaving, setPwSaving] = useState(false)
+
+  // delete account modal
+  const [showDelete, setShowDelete] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const isOrganizer = user?.role === 'organizer'
 
   // ── DATA FETCHING ── loads the current user's profile + game list to populate the form
   useEffect(() => {
@@ -58,6 +78,51 @@ export default function ProfilePage() {
     }
   }
 
+  async function handlePasswordSubmit(e) {
+    e.preventDefault()
+    setPwError('')
+    setPwFieldErrors({})
+    setPwSuccess(false)
+    setPwSaving(true)
+    try {
+      await api.put('/me/password', pwForm)
+      setPwSuccess(true)
+      setPwForm(EMPTY_PW_FORM)
+    } catch (err) {
+      if (err.response?.status === 422 && err.response.data?.errors) {
+        setPwFieldErrors(err.response.data.errors)
+      } else {
+        setPwError(err.response?.data?.message ?? 'Could not update password.')
+      }
+    } finally {
+      setPwSaving(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteError('')
+    setDeleteLoading(true)
+    try {
+      await api.delete('/me', { data: { password: deletePassword } })
+      // token is invalid server-side now — clear locally, no /logout call
+      clearSession()
+      navigate('/')
+    } catch (err) {
+      setDeleteError(
+        err.response?.data?.errors?.password?.[0]
+        ?? err.response?.data?.message
+        ?? 'Could not delete account.'
+      )
+      setDeleteLoading(false)
+    }
+  }
+
+  function closeDeleteModal() {
+    setShowDelete(false)
+    setDeletePassword('')
+    setDeleteError('')
+  }
+
   if (loading)   return <PageScreen message="Loading..." />
   if (loadError) return <PageScreen message="Could not load profile. Please try again." />
 
@@ -67,7 +132,7 @@ export default function ProfilePage() {
       <SkyBanner eyebrow={profile?.name} title="Profile Settings" subtitle="Manage your account information" />
 
       {/* Form */}
-      <div className="max-w-2xl mx-auto px-6 py-10" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-2xl mx-auto px-6 py-10 space-y-6" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
           <p className="font-cinzel text-xs font-bold text-[#334155] uppercase tracking-widest mb-6">
             Profile Information
@@ -131,7 +196,110 @@ export default function ProfilePage() {
             </button>
           </form>
         </div>
+
+        {/* ── CHANGE PASSWORD ── */}
+        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
+          <p className="font-cinzel text-xs font-bold text-[#334155] uppercase tracking-widest mb-6">
+            Change Password
+          </p>
+
+          {pwSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3 mb-5">
+              Password updated successfully.
+            </div>
+          )}
+          {pwError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
+              {pwError}
+            </div>
+          )}
+
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div>
+              <label className={labelCls}>Current Password</label>
+              <input type="password" value={pwForm.current_password}
+                onChange={e => setPwForm({ ...pwForm, current_password: e.target.value })}
+                required autoComplete="current-password" className={inputCls} />
+              {pwFieldErrors.current_password && (
+                <p className="text-xs text-red-600 mt-1">{pwFieldErrors.current_password[0]}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>New Password</label>
+                <input type="password" value={pwForm.password}
+                  onChange={e => setPwForm({ ...pwForm, password: e.target.value })}
+                  required autoComplete="new-password" className={inputCls} />
+                {pwFieldErrors.password && (
+                  <p className="text-xs text-red-600 mt-1">{pwFieldErrors.password[0]}</p>
+                )}
+              </div>
+              <div>
+                <label className={labelCls}>Confirm New Password</label>
+                <input type="password" value={pwForm.password_confirmation}
+                  onChange={e => setPwForm({ ...pwForm, password_confirmation: e.target.value })}
+                  required autoComplete="new-password" className={inputCls} />
+              </div>
+            </div>
+
+            <button type="submit" disabled={pwSaving}
+              className="bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white px-6 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
+              {pwSaving ? 'Updating...' : 'Update Password'}
+            </button>
+          </form>
+        </div>
+
+        {/* ── DANGER ZONE ── */}
+        <div className="bg-white/85 backdrop-blur-sm border border-red-200 rounded-2xl p-6 shadow-sm">
+          <p className="font-cinzel text-xs font-bold text-red-600 uppercase tracking-widest mb-3">
+            Danger Zone
+          </p>
+          <p className="text-sm text-[#334155] mb-1">
+            Permanently delete your account. This cannot be undone.
+          </p>
+          <p className="text-xs text-[#334155]/70 mb-4">
+            {isOrganizer
+              ? 'All tournaments you organized will be deleted, including every player registration in them. Your registrations in other events will also be removed.'
+              : 'Your registrations in events will be removed. The events themselves are not affected.'}
+          </p>
+          <button
+            onClick={() => setShowDelete(true)}
+            className="border border-red-200 text-red-600 hover:bg-red-50 px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer"
+          >
+            Delete Account
+          </button>
+        </div>
       </div>
+
+      {/* ── DELETE ACCOUNT MODAL ── */}
+      {showDelete && (
+        <ConfirmModal
+          title="Delete Account?"
+          message={isOrganizer
+            ? 'This permanently deletes your account and all tournaments you organized. Enter your password to confirm.'
+            : 'This permanently deletes your account. Enter your password to confirm.'}
+          error={deleteError}
+          confirmLabel="Delete"
+          danger
+          loading={deleteLoading}
+          onConfirm={handleDeleteAccount}
+          onCancel={closeDeleteModal}
+        >
+          <div className="mb-4">
+            <label className={labelCls}>Your Password</label>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={e => setDeletePassword(e.target.value)}
+              required
+              autoFocus
+              autoComplete="current-password"
+              className="w-full bg-white border border-[#DCEEFF] rounded-lg px-3 py-2 text-sm text-[#0F172A] placeholder-slate-400 focus:outline-none focus:border-[#2563EB]"
+            />
+          </div>
+        </ConfirmModal>
+      )}
     </div>
   )
 }
