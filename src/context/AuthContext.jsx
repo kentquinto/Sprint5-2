@@ -30,20 +30,26 @@ export function AuthProvider({ children }) {
     })
   }
 
-  async function logout() {
-    try {
-      await api.post('/logout')
-    } catch {
-      // token may already be expired — clear locally regardless
-    }
+  // Local-only clear — used when the token is already invalid server-side
+  // (e.g. after account deletion), so there's no point calling /logout.
+  function clearSession() {
     setToken(null)
     setUser(null)
     localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
 
+  async function logout() {
+    try {
+      await api.post('/logout')
+    } catch {
+      // token may already be expired — clear locally regardless
+    }
+    clearSession()
+  }
+
   return (
-    <AuthContext.Provider value={{ token, user, updateUser, login, logout }}>
+    <AuthContext.Provider value={{ token, user, updateUser, login, logout, clearSession }}>
       {children}
     </AuthContext.Provider>
   )
