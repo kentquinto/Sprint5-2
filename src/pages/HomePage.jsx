@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
 import { useContext, useState, useEffect } from 'react'
 import { AuthContext } from '../context/AuthContext'
+import Button from '../components/ui/Button'
 
 // ─── SPRITE HELPER ──────────────────────────────────────────────────────────
 // Decorative image (clouds, trees, bushes, sun). pointer-events-none so it
@@ -164,8 +164,8 @@ export default function HomePage() {
                 animation: 'popIn 0.22s ease-out forwards' }}
             >
               <div className="bg-white/90 backdrop-blur-sm border border-white/60 rounded-2xl p-4 shadow-xl">
-                <p className="font-cinzel font-bold text-[#0F172A] text-sm mb-1">{label}</p>
-                <p className="text-xs text-[#334155] leading-relaxed">{desc}</p>
+                <p className="font-cinzel font-bold text-ink text-sm mb-1">{label}</p>
+                <p className="text-xs text-ink-soft leading-relaxed">{desc}</p>
               </div>
               {/* zero-size box with only top/left/right borders = CSS triangle arrow */}
               <div className="mx-auto" style={{
@@ -198,15 +198,13 @@ export default function HomePage() {
         </p>
         {/* Login button is hidden when the user is already logged in */}
         <div className="flex gap-4">
-          <Link to="/events"
-            className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-8 py-3 rounded-full font-bold text-sm transition-colors shadow-lg">
+          <Button to="/events" size="lg" className="shadow-lg">
             Browse Events
-          </Link>
+          </Button>
           {!token && (
-            <Link to="/login"
-              className="bg-white/20 hover:bg-white/30 text-white border-2 border-white/60 px-8 py-3 rounded-full font-bold text-sm transition-colors shadow-lg backdrop-blur-sm">
+            <Button to="/login" variant="glass" size="lg">
               Login
-            </Link>
+            </Button>
           )}
         </div>
       </div>

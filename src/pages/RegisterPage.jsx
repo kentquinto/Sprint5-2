@@ -4,6 +4,7 @@ import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import { inputCls, labelCls } from '../utils/formStyles'
 import SkyPage from '../components/SkyPage'
+import Button from '../components/ui/Button'
 
 export default function RegisterPage() {
   const { login } = useContext(AuthContext)
@@ -54,7 +55,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-8 shadow-sm">
-          <p className="text-sm text-[#334155] mb-6">Join TCG Manager and start competing</p>
+          <p className="text-sm text-ink-soft mb-6">Join TCG Manager and start competing</p>
 
           {errors.general && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-5">
@@ -95,15 +96,14 @@ export default function RegisterPage() {
               </select>
               {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role[0]}</p>}
             </div>
-            <button type="submit" disabled={loading}
-              className="w-full bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white font-bold py-2.5 rounded-full text-sm transition-colors cursor-pointer shadow-sm">
+            <Button type="submit" disabled={loading} className="w-full py-2.5">
               {loading ? 'Creating account...' : 'Create account'}
-            </button>
+            </Button>
           </form>
 
-          <p className="text-center text-sm text-[#334155] mt-6">
+          <p className="text-center text-sm text-ink-soft mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-[#2563EB] hover:underline font-medium">Sign in</Link>
+            <Link to="/login" className="text-primary hover:underline font-medium">Sign in</Link>
           </p>
         </div>
       </div>

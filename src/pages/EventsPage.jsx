@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { MapPin, Calendar, Coins, Users } from 'lucide-react'
 import api from '../api/axios'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
 import SkyBanner from '../components/SkyBanner'
+import { EventCardSkeleton } from '../components/ui/Skeleton'
 import { compactInputCls } from '../utils/formStyles'
 
 export default function EventsPage() {
@@ -16,41 +18,36 @@ export default function EventsPage() {
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState('newest') // client-side only, doesn't hit the API
 
-  // form = live input values, appliedFilters = what was last submitted/debounced.
-  // Kept separate so typing doesn't refetch on every keystroke (except search, which debounces).
-  const [form, setForm] = useState({ search: '', date: '', price: '', status: '' })
-  const [appliedFilters, setAppliedFilters] = useState({})
+  // Every filter applies instantly on change; search is debounced so typing
+  // doesn't refetch on every keystroke.
+  const [filters, setFilters] = useState({ search: '', date: '', price: '', status: '' })
+  const [debouncedSearch, setDebouncedSearch] = useState('')
 
   // ── DATA FETCHING ──
   useEffect(() => {
     api.get('/games').then(res => setGames(res.data.data ?? res.data))
   }, [])
 
-  useEffect(() => {
-    fetchEvents()
-  }, [appliedFilters, activeGame, page])
-
   // Debounce search — fires 400ms after the user stops typing
   useEffect(() => {
-    const t = setTimeout(() => {
-      setPage(1)
-      setAppliedFilters(prev => {
-        const next = { ...prev }
-        if (form.search) next.search = form.search
-        else delete next.search
-        return next
-      })
-    }, 400)
+    const t = setTimeout(() => setDebouncedSearch(filters.search), 400)
     return () => clearTimeout(t)
-  }, [form.search])
+  }, [filters.search])
 
-  // ── HANDLERS ──
+  useEffect(() => {
+    fetchEvents()
+  }, [debouncedSearch, filters.date, filters.price, filters.status, activeGame, page])
+
   async function fetchEvents() {
     setLoading(true)
     try {
-      const params = { ...appliedFilters }
-      if (activeGame) params.game = activeGame
-      if (page > 1) params.page = page
+      const params = {}
+      if (debouncedSearch) params.search = debouncedSearch
+      if (filters.date)    params.date   = filters.date
+      if (filters.price)   params.price  = filters.price
+      if (filters.status)  params.status = filters.status
+      if (activeGame)      params.game   = activeGame
+      if (page > 1)        params.page   = page
       const res = await api.get('/events', { params })
       setEvents(res.data.data ?? res.data)
       setMeta(res.data.meta)
@@ -59,20 +56,14 @@ export default function EventsPage() {
     }
   }
 
-  function handleApplyFilters(e) {
-    e.preventDefault()
+  // ── HANDLERS ──
+  function updateFilter(key, value) {
+    setFilters(f => ({ ...f, [key]: value }))
     setPage(1)
-    const active = {}
-    if (form.search) active.search = form.search
-    if (form.date)   active.date   = form.date
-    if (form.price)  active.price  = form.price
-    if (form.status) active.status = form.status
-    setAppliedFilters(active)
   }
 
   function handleClearFilters() {
-    setForm({ search: '', date: '', price: '', status: '' })
-    setAppliedFilters({})
+    setFilters({ search: '', date: '', price: '', status: '' })
     setActiveGame('')
     setPage(1)
   }
@@ -82,7 +73,7 @@ export default function EventsPage() {
     setPage(1)
   }
 
-  const hasActiveFilters = Object.keys(appliedFilters).length > 0 || activeGame !== ''
+  const hasActiveFilters = Object.values(filters).some(Boolean) || activeGame !== ''
 
   // ── DERIVED ── sort happens client-side on the current page of results
   const sortedEvents = [...events].sort((a, b) => {
@@ -100,25 +91,25 @@ export default function EventsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
 
-        {/* ── FILTER BAR ── search/date/price/status inputs + sort dropdown + game pills */}
+        {/* ── FILTER BAR ── every control applies instantly; no submit step */}
         <div className="mb-6 bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-4 py-2.5 shadow-sm">
-          <form onSubmit={handleApplyFilters} className="flex gap-2 items-center overflow-x-auto">
+          <div className="flex gap-2 items-center overflow-x-auto">
             <input
               type="text"
               placeholder="Search events..."
-              value={form.search}
-              onChange={e => setForm({ ...form, search: e.target.value })}
+              value={filters.search}
+              onChange={e => updateFilter('search', e.target.value)}
               className={`${compactInputCls} w-1/2 min-w-[140px]`}
             />
             <input
               type="date"
-              value={form.date}
-              onChange={e => setForm({ ...form, date: e.target.value })}
+              value={filters.date}
+              onChange={e => updateFilter('date', e.target.value)}
               className={compactInputCls}
             />
             <select
-              value={form.price}
-              onChange={e => setForm({ ...form, price: e.target.value })}
+              value={filters.price}
+              onChange={e => updateFilter('price', e.target.value)}
               className={compactInputCls}
             >
               <option value="">All Prices</option>
@@ -126,8 +117,8 @@ export default function EventsPage() {
               <option value="paid">Paid</option>
             </select>
             <select
-              value={form.status}
-              onChange={e => setForm({ ...form, status: e.target.value })}
+              value={filters.status}
+              onChange={e => updateFilter('status', e.target.value)}
               className={compactInputCls}
             >
               <option value="">All Statuses</option>
@@ -146,22 +137,16 @@ export default function EventsPage() {
               <option value="cheapest">Cheapest</option>
               <option value="popular">Most Popular</option>
             </select>
-            <button
-              type="submit"
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white text-sm font-bold px-4 py-1.5 rounded-full transition-colors cursor-pointer shadow-sm"
-            >
-              Apply
-            </button>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="text-sm text-[#334155]/70 hover:text-[#334155] underline cursor-pointer transition-colors"
+                className="text-sm text-ink-soft/70 hover:text-ink-soft underline cursor-pointer transition-colors shrink-0"
               >
                 Clear
               </button>
             )}
-          </form>
+          </div>
 
           {/* Game pills */}
           <div className="flex gap-2 mt-2.5 overflow-x-auto pb-0.5">
@@ -169,8 +154,8 @@ export default function EventsPage() {
               onClick={() => handleGamePill('')}
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                 activeGame === ''
-                  ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                  : 'bg-white/60 text-[#0F172A] border-[#DCEEFF] hover:border-[#60A5FA]'
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white/60 text-ink border-mist hover:border-sky-bright'
               }`}
             >
               All
@@ -181,8 +166,8 @@ export default function EventsPage() {
                 onClick={() => handleGamePill(game.id)}
                 className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                   activeGame === Number(game.id)
-                    ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                    : 'bg-white/60 text-[#0F172A] border-[#DCEEFF] hover:border-[#60A5FA]'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white/60 text-ink border-mist hover:border-sky-bright'
                 }`}
               >
                 {game.name}
@@ -193,19 +178,22 @@ export default function EventsPage() {
 
         {/* ── EVENTS GRID ── */}
         {loading ? (
-          <p className="text-center text-white/80 py-16">Loading events...</p>
+          /* Skeleton cards keep the layout stable while events load */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading events">
+            {Array.from({ length: 6 }, (_, i) => <EventCardSkeleton key={i} />)}
+          </div>
         ) : events.length === 0 ? (
           /* ── EMPTY STATE ── */
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm">
-              <p className="font-cinzel font-bold text-[#0F172A] text-sm mb-1">No events found</p>
-              <p className="text-xs text-[#334155]/70">
+              <p className="font-cinzel font-bold text-ink text-sm mb-1">No events found</p>
+              <p className="text-xs text-ink-soft/70">
                 {hasActiveFilters ? 'Try adjusting or clearing your filters.' : 'No tournaments have been created yet.'}
               </p>
               {hasActiveFilters && (
                 <button
                   onClick={handleClearFilters}
-                  className="mt-4 text-xs text-[#2563EB] hover:underline cursor-pointer"
+                  className="mt-4 text-xs text-primary hover:underline cursor-pointer"
                 >
                   Clear filters
                 </button>
@@ -240,12 +228,12 @@ export default function EventsPage() {
                       </span>
                     )}
                   </div>
-                  <h3 className="font-bold text-[#0F172A] text-sm mt-2 mb-1.5 leading-snug">{event.title}</h3>
-                  <div className="space-y-0.5 text-xs text-[#334155]">
-                    <p>📍 {event.location}</p>
-                    <p>📅 {formatDate(event.date_time)}</p>
-                    <p>💰 {event.entry_fee > 0 ? `€${event.entry_fee}` : 'Free entry'}</p>
-                    <p>👥 {event.participants_count} / {event.max_players} players</p>
+                  <h3 className="font-bold text-ink text-sm mt-2 mb-1.5 leading-snug">{event.title}</h3>
+                  <div className="space-y-1 text-xs text-ink-soft">
+                    <p className="flex items-center gap-1.5"><MapPin size={13} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{event.location}</p>
+                    <p className="flex items-center gap-1.5"><Calendar size={13} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{formatDate(event.date_time)}</p>
+                    <p className="flex items-center gap-1.5"><Coins size={13} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{event.entry_fee > 0 ? `€${event.entry_fee}` : 'Free entry'}</p>
+                    <p className="flex items-center gap-1.5"><Users size={13} className="shrink-0 text-ink-soft/60" aria-hidden="true" />{event.participants_count} / {event.max_players} players</p>
                   </div>
                 </div>
               </Link>
@@ -262,8 +250,8 @@ export default function EventsPage() {
                 onClick={() => setPage(p)}
                 className={`px-3 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
                   p === meta.current_page
-                    ? 'bg-[#2563EB] text-white border-[#2563EB]'
-                    : 'bg-white/70 text-[#0F172A] border-white/60 hover:border-[#60A5FA]'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white/70 text-ink border-white/60 hover:border-sky-bright'
                 }`}
               >
                 {p}

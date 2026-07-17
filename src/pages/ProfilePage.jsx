@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 import ConfirmModal from '../components/ConfirmModal'
+import Button from '../components/ui/Button'
 import { inputCls, labelCls } from '../utils/formStyles'
 
 const EMPTY_PW_FORM = { current_password: '', password: '', password_confirmation: '' }
@@ -123,8 +124,8 @@ export default function ProfilePage() {
     setDeleteError('')
   }
 
-  if (loading)   return <PageScreen message="Loading..." />
-  if (loadError) return <PageScreen message="Could not load profile. Please try again." />
+  if (loading)   return <PageScreen message="Loading profile..." />
+  if (loadError) return <PageScreen message="Could not load profile. Please try again." error />
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
@@ -134,7 +135,7 @@ export default function ProfilePage() {
       {/* Form */}
       <div className="max-w-2xl mx-auto px-6 py-10 space-y-6" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
-          <p className="font-cinzel text-xs font-bold text-[#334155] uppercase tracking-widest mb-6">
+          <p className="font-cinzel text-xs font-bold text-ink-soft uppercase tracking-widest mb-6">
             Profile Information
           </p>
 
@@ -160,7 +161,7 @@ export default function ProfilePage() {
               <div>
                 <label className={labelCls}>Email</label>
                 <input type="email" value={profile?.email ?? ''} disabled
-                  className="w-full bg-white/50 border border-white/40 rounded-lg px-3 py-2 text-sm text-[#334155]/60 cursor-not-allowed" />
+                  className="w-full bg-white/50 border border-white/40 rounded-lg px-3 py-2 text-sm text-ink-soft/60 cursor-not-allowed" />
               </div>
             </div>
 
@@ -190,16 +191,15 @@ export default function ProfilePage() {
                 className={inputCls} />
             </div>
 
-            <button type="submit" disabled={saving}
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white px-6 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
+            <Button type="submit" disabled={saving} className="px-6">
               {saving ? 'Saving...' : 'Save Changes'}
-            </button>
+            </Button>
           </form>
         </div>
 
         {/* ── CHANGE PASSWORD ── */}
         <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
-          <p className="font-cinzel text-xs font-bold text-[#334155] uppercase tracking-widest mb-6">
+          <p className="font-cinzel text-xs font-bold text-ink-soft uppercase tracking-widest mb-6">
             Change Password
           </p>
 
@@ -243,10 +243,9 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <button type="submit" disabled={pwSaving}
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white px-6 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm">
+            <Button type="submit" disabled={pwSaving} className="px-6">
               {pwSaving ? 'Updating...' : 'Update Password'}
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -255,20 +254,17 @@ export default function ProfilePage() {
           <p className="font-cinzel text-xs font-bold text-red-600 uppercase tracking-widest mb-3">
             Danger Zone
           </p>
-          <p className="text-sm text-[#334155] mb-1">
+          <p className="text-sm text-ink-soft mb-1">
             Permanently delete your account. This cannot be undone.
           </p>
-          <p className="text-xs text-[#334155]/70 mb-4">
+          <p className="text-xs text-ink-soft/70 mb-4">
             {isOrganizer
               ? 'All tournaments you organized will be deleted, including every player registration in them. Your registrations in other events will also be removed.'
               : 'Your registrations in events will be removed. The events themselves are not affected.'}
           </p>
-          <button
-            onClick={() => setShowDelete(true)}
-            className="border border-red-200 text-red-600 hover:bg-red-50 px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer"
-          >
+          <Button variant="danger-outline" onClick={() => setShowDelete(true)}>
             Delete Account
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -295,7 +291,7 @@ export default function ProfilePage() {
               required
               autoFocus
               autoComplete="current-password"
-              className="w-full bg-white border border-[#DCEEFF] rounded-lg px-3 py-2 text-sm text-[#0F172A] placeholder-slate-400 focus:outline-none focus:border-[#2563EB]"
+              className="w-full bg-white border border-mist rounded-lg px-3 py-2 text-sm text-ink placeholder-slate-400 focus:outline-none focus:border-primary"
             />
           </div>
         </ConfirmModal>

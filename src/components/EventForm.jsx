@@ -1,9 +1,10 @@
 import { inputCls, labelCls } from '../utils/formStyles'
+import Button from './ui/Button'
 
 export default function EventForm({ form, setForm, games, editingId, formError, formLoading, onSubmit, onCancel }) {
   return (
     <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-8 shadow-sm">
-      <h2 className="text-lg font-bold text-[#0F172A] mb-6">
+      <h2 className="text-lg font-bold text-ink mb-6">
         {editingId ? 'Edit Event' : 'Create an Event'}
       </h2>
 
@@ -72,14 +73,12 @@ export default function EventForm({ form, setForm, games, editingId, formError, 
         </div>
 
         <div className="flex gap-3 pt-1">
-          <button type="submit" disabled={formLoading}
-            className="bg-[#2563EB] hover:bg-[#1d4ed8] disabled:opacity-50 text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer">
+          <Button type="submit" disabled={formLoading}>
             {formLoading ? 'Saving...' : editingId ? 'Save Changes' : 'Create Event'}
-          </button>
-          <button type="button" onClick={onCancel}
-            className="border border-white/60 bg-white/50 text-[#334155] hover:bg-white/70 px-5 py-2 rounded-full text-sm transition-colors cursor-pointer">
+          </Button>
+          <Button type="button" variant="outline" onClick={onCancel} className="font-normal">
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
     </div>

@@ -1,6 +1,9 @@
 import { useState, useEffect, useContext } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import api from '../api/axios'
+import Button from '../components/ui/Button'
+import { Skeleton } from '../components/ui/Skeleton'
 import { AuthContext } from '../context/AuthContext'
 import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
 import ConfirmModal from '../components/ConfirmModal'
@@ -16,6 +19,7 @@ const EMPTY_FORM = {
 
 export default function DashboardPage() {
   const { user } = useContext(AuthContext)
+  const location = useLocation()
 
   // ── STATE ──
   const [organizedEvents, setOrganizedEvents] = useState([])
@@ -41,6 +45,11 @@ export default function DashboardPage() {
     fetchAll()
     api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
   }, [])
+
+  // Navbar "Create Event" links here with openCreate state — open the form directly
+  useEffect(() => {
+    if (location.state?.openCreate && user?.role === 'organizer') openCreate()
+  }, [location.state, user?.role])
 
   async function fetchAll() {
     setLoading(true)
@@ -147,12 +156,9 @@ export default function DashboardPage() {
         {/* Create Event button — organizers only, hidden while the form is open */}
         {!showForm && user?.role === 'organizer' && (
           <div className="flex justify-end mb-6">
-            <button
-              onClick={openCreate}
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm"
-            >
-              + Create Event
-            </button>
+            <Button onClick={openCreate}>
+              <Plus size={16} aria-hidden="true" /> Create Event
+            </Button>
           </div>
         )}
 
@@ -181,7 +187,9 @@ export default function DashboardPage() {
               Created Events <span className="text-white/40">({organizedEvents.length})</span>
             </h2>
             {loading ? (
-              <p className="text-sm text-white/70">Loading...</p>
+              <div className="space-y-3" aria-label="Loading events">
+                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl bg-white/50" />)}
+              </div>
             ) : organizedEvents.length === 0 ? (
               <p className="text-sm text-white/70">You haven't created any events yet.</p>
             ) : (
@@ -191,10 +199,10 @@ export default function DashboardPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <Link to={`/events/${event.id}`}
-                          className="font-semibold text-[#0F172A] hover:text-[#2563EB] text-sm transition-colors">
+                          className="font-semibold text-ink hover:text-primary text-sm transition-colors">
                           {event.title}
                         </Link>
-                        <p className="text-xs text-[#334155]/70 mt-0.5">
+                        <p className="text-xs text-ink-soft/70 mt-0.5">
                           {event.game?.name} · {formatDate(event.date_time)}
                         </p>
                       </div>
@@ -203,14 +211,12 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <button onClick={() => openEdit(event)}
-                        className="text-xs border border-[#DCEEFF] text-[#2563EB] hover:bg-[#DCEEFF] px-3 py-1 rounded-full transition-colors cursor-pointer">
+                      <Button variant="primary-outline" size="sm" onClick={() => openEdit(event)}>
                         Edit
-                      </button>
-                      <button onClick={() => { setDeleteId(event.id); setDeleteError('') }}
-                        className="text-xs border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1 rounded-full transition-colors cursor-pointer">
+                      </Button>
+                      <Button variant="danger-outline" size="sm" onClick={() => { setDeleteId(event.id); setDeleteError('') }}>
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -224,18 +230,20 @@ export default function DashboardPage() {
               Joined Events <span className="text-white/40">({joinedEvents.length})</span>
             </h2>
             {loading ? (
-              <p className="text-sm text-white/70">Loading...</p>
+              <div className="space-y-3" aria-label="Loading events">
+                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl bg-white/50" />)}
+              </div>
             ) : joinedEvents.length === 0 ? (
               <p className="text-sm text-white/70">You haven't joined any events yet.</p>
             ) : (
               <div className="space-y-3">
                 {joinedEvents.map(event => (
                   <Link key={event.id} to={`/events/${event.id}`}
-                    className="block bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm hover:border-[#60A5FA] transition-colors">
+                    className="block bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm hover:border-sky-bright transition-colors">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-[#0F172A] text-sm">{event.title}</p>
-                        <p className="text-xs text-[#334155]/70 mt-0.5">
+                        <p className="font-semibold text-ink text-sm">{event.title}</p>
+                        <p className="text-xs text-ink-soft/70 mt-0.5">
                           {event.game?.name} · {formatDate(event.date_time)}
                         </p>
                       </div>
