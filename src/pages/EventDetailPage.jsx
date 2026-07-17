@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useCallback } from 'react'
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
 import api from '../api/axios'
@@ -27,9 +27,7 @@ export default function EventDetailPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   // ── DATA FETCHING ──
-  useEffect(() => { fetchAll() }, [id])
-
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
       const eventRes = await api.get(`/events/${id}`)
@@ -53,7 +51,9 @@ export default function EventDetailPage() {
       }
     }
     setLoading(false)
-  }
+  }, [id, token])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
 
   // ── HANDLERS ── join/leave, confirmed via the pending-action modal
   async function handleConfirm() {

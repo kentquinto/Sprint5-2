@@ -1,11 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 export default function Toast({ message, onDone, duration = 3500 }) {
+  // Track the latest onDone in a ref so the timer effect doesn't depend on
+  // the callback's identity — parents pass inline arrows that change every
+  // render, and re-running the effect would reset the countdown.
+  const onDoneRef = useRef(onDone)
+  useEffect(() => { onDoneRef.current = onDone })
+
   useEffect(() => {
     if (!message) return
-    const t = setTimeout(onDone, duration)
+    const t = setTimeout(() => onDoneRef.current(), duration)
     return () => clearTimeout(t)
-  }, [message])
+  }, [message, duration])
 
   if (!message) return null
 

@@ -1,7 +1,6 @@
-import { createContext, useState } from 'react'
+import { useState } from 'react'
 import api from '../api/axios'
-
-export const AuthContext = createContext(null)
+import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token'))

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
 import api from '../api/axios'
@@ -34,11 +34,7 @@ export default function EventsPage() {
     return () => clearTimeout(t)
   }, [filters.search])
 
-  useEffect(() => {
-    fetchEvents()
-  }, [debouncedSearch, filters.date, filters.price, filters.status, activeGame, page])
-
-  async function fetchEvents() {
+  const fetchEvents = useCallback(async () => {
     setLoading(true)
     try {
       const params = {}
@@ -54,7 +50,9 @@ export default function EventsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [debouncedSearch, filters.date, filters.price, filters.status, activeGame, page])
+
+  useEffect(() => { fetchEvents() }, [fetchEvents])
 
   // ── HANDLERS ──
   function updateFilter(key, value) {

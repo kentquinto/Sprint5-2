@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import api from '../api/axios'
@@ -41,17 +41,7 @@ export default function DashboardPage() {
   const [toast, setToast] = useState('')
 
   // ── DATA FETCHING ──
-  useEffect(() => {
-    fetchAll()
-    api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
-  }, [])
-
-  // Navbar "Create Event" links here with openCreate state — open the form directly
-  useEffect(() => {
-    if (location.state?.openCreate && user?.role === 'organizer') openCreate()
-  }, [location.state, user?.role])
-
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
       const isOrganizer = user?.role === 'organizer'
@@ -64,15 +54,26 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.role])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  useEffect(() => {
+    api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
+  }, [])
 
   // ── FORM HANDLERS ──
-  function openCreate() {
+  const openCreate = useCallback(() => {
     setEditingId(null)
     setForm(EMPTY_FORM)
     setFormError('')
     setShowForm(true)
-  }
+  }, [])
+
+  // Navbar "Create Event" links here with openCreate state — open the form directly
+  useEffect(() => {
+    if (location.state?.openCreate && user?.role === 'organizer') openCreate()
+  }, [location.state, user?.role, openCreate])
 
   function openEdit(event) {
     setEditingId(event.id)
