@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react'
+import { useState, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import * as authApi from '../api/auth'
 import { getFormErrors } from '../api/errors'
@@ -7,6 +7,7 @@ import FieldError from '../components/ui/FieldError'
 import { inputCls, labelCls } from '../utils/formStyles'
 import SkyPage from '../components/SkyPage'
 import Button from '../components/ui/Button'
+import usePageTitle from '../hooks/usePageTitle'
 
 export default function RegisterPage() {
   const { login } = useContext(AuthContext)
@@ -18,7 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => { document.title = 'Register — TCG Manager' }, [])
+  usePageTitle('Register')
 
   // ── HANDLERS ──
   function handleChange(e) {

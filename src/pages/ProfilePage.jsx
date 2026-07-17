@@ -9,6 +9,7 @@ import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
 import ConfirmModal from '../components/ConfirmModal'
 import Button from '../components/ui/Button'
+import usePageTitle from '../hooks/usePageTitle'
 import { inputCls, labelCls } from '../utils/formStyles'
 
 const EMPTY_PW_FORM = { current_password: '', password: '', password_confirmation: '' }
@@ -16,6 +17,7 @@ const EMPTY_PW_FORM = { current_password: '', password: '', password_confirmatio
 export default function ProfilePage() {
   const { user, updateUser, clearSession } = useContext(AuthContext)
   const navigate = useNavigate()
+  usePageTitle('Profile Settings')
 
   // ── STATE ──
   const [profile, setProfile] = useState(null)

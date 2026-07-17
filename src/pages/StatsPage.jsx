@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { getPlayerStats, getGameStats, getOrganizerStats } from '../api/stats'
 import { AuthContext } from '../context/AuthContext'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
-import ConfirmModal from '../components/ConfirmModal'
+import LoginPromptModal from '../components/LoginPromptModal'
+import usePageTitle from '../hooks/usePageTitle'
 
 // One entry per leaderboard tab; drives both the fetch and the render below
 const TABLES = [
@@ -15,7 +16,7 @@ const TABLES = [
 
 export default function StatsPage() {
   const { token } = useContext(AuthContext)
-  const navigate = useNavigate()
+  usePageTitle('Leaderboard')
 
   // ── STATE ──
   const [data, setData] = useState({ players: [], games: [], organizers: [] })
@@ -48,15 +49,7 @@ export default function StatsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
 
-      {showLoginPrompt && (
-        <ConfirmModal
-          title="Login Required"
-          message="You need to log in to view player profiles."
-          confirmLabel="Log In"
-          onConfirm={() => navigate('/login')}
-          onCancel={() => setShowLoginPrompt(false)}
-        />
-      )}
+      <LoginPromptModal open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
       <SkyBanner title="Leaderboard" subtitle="Top players, organizers, and most active games" />
 

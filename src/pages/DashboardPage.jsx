@@ -12,7 +12,8 @@ import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
 import ConfirmModal from '../components/ConfirmModal'
 import SkyBanner from '../components/SkyBanner'
 import EventForm from '../components/EventForm'
-import Toast from '../components/Toast'
+import usePageTitle from '../hooks/usePageTitle'
+import useToast from '../hooks/useToast'
 
 const EMPTY_FORM = {
   title: '', description: '', location: '',
@@ -23,6 +24,8 @@ const EMPTY_FORM = {
 export default function DashboardPage() {
   const { user } = useContext(AuthContext)
   const location = useLocation()
+  const showToast = useToast()
+  usePageTitle('Dashboard')
 
   // ── STATE ──
   const [organizedEvents, setOrganizedEvents] = useState([])
@@ -42,7 +45,6 @@ export default function DashboardPage() {
   const [deleteId, setDeleteId] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
-  const [toast, setToast] = useState('')
 
   // ── DATA FETCHING ──
   const fetchAll = useCallback(async () => {
@@ -112,10 +114,10 @@ export default function DashboardPage() {
     try {
       if (editingId) {
         await updateEvent(editingId, form)
-        setToast('Event updated successfully!')
+        showToast('Event updated successfully!')
       } else {
         await createEvent(form)
-        setToast('Event created successfully!')
+        showToast('Event created successfully!')
       }
       cancelForm()
       await fetchAll()
@@ -135,7 +137,7 @@ export default function DashboardPage() {
     try {
       await deleteEvent(deleteId)
       setDeleteId(null)
-      setToast('Event deleted.')
+      showToast('Event deleted.')
       fetchAll()
     } catch (err) {
       setDeleteError(err.response?.data?.message ?? 'Could not delete event.')
@@ -158,9 +160,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} pageTitle="Dashboard" subtitle="Manage your events and track your activity" />
-
-      <Toast message={toast} onDone={() => setToast('')} />
+      <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} subtitle="Manage your events and track your activity" />
 
       <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
         {/* Create Event button — organizers only, hidden while the form is open */}

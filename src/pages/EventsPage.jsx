@@ -6,10 +6,13 @@ import { getGames } from '../api/games'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
 import SkyBanner from '../components/SkyBanner'
+import usePageTitle from '../hooks/usePageTitle'
 import { EventCardSkeleton } from '../components/ui/Skeleton'
 import { compactInputCls } from '../utils/formStyles'
 
 export default function EventsPage() {
+  usePageTitle('All Events')
+
   // ── STATE ──
   const [events, setEvents] = useState([])
   const [games, setGames] = useState([])

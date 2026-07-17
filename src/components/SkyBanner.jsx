@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-
 const DEFAULT_CLOUDS = [
   { src: '/images/items/cloud2.png', w: 180, t: 30, dur: '70s', delay: '-15s' },
   { src: '/images/items/cloud1.png', w: 140, t: 10, dur: '50s', delay: '-5s'  },
@@ -7,11 +5,7 @@ const DEFAULT_CLOUDS = [
   { src: '/images/items/cloud3.png', w: 160, t: 18, dur: '60s', delay: '-42s' },
 ]
 
-export default function SkyBanner({ eyebrow, title, pageTitle, subtitle, clouds = DEFAULT_CLOUDS, height = 200 }) {
-  useEffect(() => {
-    document.title = `${pageTitle ?? title} — TCG Manager`
-  }, [title, pageTitle])
-
+export default function SkyBanner({ eyebrow, title, subtitle, clouds = DEFAULT_CLOUDS, height = 200 }) {
   return (
     <div className="relative overflow-hidden" style={{ height }}>
       <img src="/images/items/sun.png" alt="" draggable={false}

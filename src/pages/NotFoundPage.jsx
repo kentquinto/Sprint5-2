@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
 import SkyPage from '../components/SkyPage'
 import Button from '../components/ui/Button'
+import usePageTitle from '../hooks/usePageTitle'
 
 export default function NotFoundPage() {
-  useEffect(() => { document.title = '404 — TCG Manager' }, [])
+  usePageTitle('404')
 
   return (
     <SkyPage>

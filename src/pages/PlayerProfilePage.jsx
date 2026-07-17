@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { getPlayer } from '../api/players'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
+import usePageTitle from '../hooks/usePageTitle'
 
 export default function PlayerProfilePage() {
   const { id } = useParams()
@@ -12,6 +13,7 @@ export default function PlayerProfilePage() {
   const [player, setPlayer] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  usePageTitle(player?.name)
 
   // ── DATA FETCHING ── public profile for whichever player id is in the URL
   useEffect(() => {

@@ -1,6 +1,7 @@
-import { useContext, useState, useEffect } from 'react'
+import { useContext, useState } from 'react'
 import { AuthContext } from '../context/AuthContext'
 import Button from '../components/ui/Button'
+import usePageTitle from '../hooks/usePageTitle'
 
 // ─── SPRITE HELPER ──────────────────────────────────────────────────────────
 // Decorative image (clouds, trees, bushes, sun). pointer-events-none so it
@@ -78,7 +79,7 @@ export default function HomePage() {
 
   const [activeHouse, setActiveHouse] = useState(null) // index of open speech bubble, or null
 
-  useEffect(() => { document.title = 'TCG Manager' }, [])
+  usePageTitle()
 
   return (
     // Dark green base color visible below the ground strip

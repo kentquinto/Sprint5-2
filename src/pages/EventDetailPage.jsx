@@ -7,14 +7,17 @@ import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
 import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
 import ConfirmModal from '../components/ConfirmModal'
-import Toast from '../components/Toast'
+import LoginPromptModal from '../components/LoginPromptModal'
 import PageScreen from '../components/PageScreen'
+import usePageTitle from '../hooks/usePageTitle'
+import useToast from '../hooks/useToast'
 
 export default function EventDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { token, user } = useContext(AuthContext)
+  const showToast = useToast()
 
   // ── STATE ──
   const [event, setEvent] = useState(null)
@@ -23,8 +26,9 @@ export default function EventDetailPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState('')
   const [pendingAction, setPendingAction] = useState(null) // 'join' | 'leave' | null — drives the confirm modal
-  const [toast, setToast] = useState('')
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+
+  usePageTitle(event?.title)
 
   // ── DATA FETCHING ──
   const fetchAll = useCallback(async () => {
@@ -32,7 +36,6 @@ export default function EventDetailPage() {
     try {
       const eventData = await getEvent(id)
       setEvent(eventData)
-      document.title = `${eventData.title} — TCG Manager`
     } catch {
       setError('Could not load event.')
       setLoading(false)
@@ -60,10 +63,10 @@ export default function EventDetailPage() {
     try {
       if (pendingAction === 'join') {
         await joinEvent(id)
-        setToast('You have joined the event!')
+        showToast('You have joined the event!')
       } else {
         await leaveEvent(id)
-        setToast('You have left the event.')
+        showToast('You have left the event.')
       }
       setPendingAction(null)
       await fetchAll()
@@ -88,8 +91,6 @@ export default function EventDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
-      <Toast message={toast} onDone={() => setToast('')} />
-
       {pendingAction && (
         <ConfirmModal
           title={pendingAction === 'join' ? 'Join Event?' : 'Leave Event?'}
@@ -104,15 +105,7 @@ export default function EventDetailPage() {
         />
       )}
 
-      {showLoginPrompt && (
-        <ConfirmModal
-          title="Login Required"
-          message="You need to log in to view player profiles."
-          confirmLabel="Log In"
-          onConfirm={() => navigate('/login')}
-          onCancel={() => setShowLoginPrompt(false)}
-        />
-      )}
+      <LoginPromptModal open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
       <div className="max-w-4xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
         <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-4 inline-block transition-colors cursor-pointer">
