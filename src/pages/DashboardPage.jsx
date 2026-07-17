@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [joinedEvents, setJoinedEvents] = useState([])
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   // create/edit form — editingId null means "creating", set means "editing that event"
   const [showForm, setShowForm] = useState(false)
@@ -50,6 +51,7 @@ export default function DashboardPage() {
   // ── DATA FETCHING ──
   const fetchAll = useCallback(async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const isOrganizer = user?.role === 'organizer'
       const [organized, joined] = await Promise.all([
@@ -58,6 +60,8 @@ export default function DashboardPage() {
       ])
       if (organized) setOrganizedEvents(organized)
       setJoinedEvents(joined)
+    } catch {
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -188,6 +192,17 @@ export default function DashboardPage() {
           />
         )}
 
+        {/* ── ERROR STATE ── shown in place of the lists when loading them failed */}
+        {loadError ? (
+          <div className="flex justify-center py-16">
+            <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm text-center">
+              <p className="font-cinzel font-bold text-ink text-sm mb-1">Could not load your events</p>
+              <p className="text-xs text-ink-soft/70 mb-4">Check your connection and try again.</p>
+              <Button size="sm" onClick={fetchAll}>Retry</Button>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* Event lists — left: events you organize (editable, organizers only), right: events you joined (read-only) */}
         <div className={user?.role === 'organizer'
           ? 'grid grid-cols-1 lg:grid-cols-2 gap-8'
@@ -269,6 +284,8 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   )

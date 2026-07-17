@@ -8,6 +8,7 @@ import { STATUS_COLORS } from '../utils/statusColors'
 import { capitalize, formatDate } from '../utils/format'
 import SkyBanner from '../components/SkyBanner'
 import usePageTitle from '../hooks/usePageTitle'
+import Button from '../components/ui/Button'
 import { EventCardSkeleton } from '../components/ui/Skeleton'
 import { compactInputCls } from '../utils/formStyles'
 
@@ -19,6 +20,7 @@ export default function EventsPage() {
   const [games, setGames] = useState([])
   const [meta, setMeta] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [activeGame, setActiveGame] = useState('')
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState('newest') // client-side only, doesn't hit the API
@@ -30,7 +32,8 @@ export default function EventsPage() {
 
   // ── DATA FETCHING ──
   useEffect(() => {
-    getGames().then(setGames)
+    // Games only power the filter pills — if they fail, the page still works
+    getGames().then(setGames).catch(() => {})
   }, [])
 
   // Debounce search — fires 400ms after the user stops typing
@@ -41,6 +44,7 @@ export default function EventsPage() {
 
   const fetchEvents = useCallback(async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const params = {}
       if (debouncedSearch) params.search = debouncedSearch
@@ -52,6 +56,10 @@ export default function EventsPage() {
       const { events: list, meta: pageMeta } = await getEvents(params)
       setEvents(list)
       setMeta(pageMeta)
+    } catch {
+      // Distinguish "request failed" from "no events" — showing the empty
+      // state on a network error would be lying to the user.
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -184,6 +192,15 @@ export default function EventsPage() {
           /* Skeleton cards keep the layout stable while events load */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading events">
             {Array.from({ length: 6 }, (_, i) => <EventCardSkeleton key={i} />)}
+          </div>
+        ) : loadError ? (
+          /* ── ERROR STATE ── */
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm">
+              <p className="font-cinzel font-bold text-ink text-sm mb-1">Could not load events</p>
+              <p className="text-xs text-ink-soft/70 mb-4">Check your connection and try again.</p>
+              <Button size="sm" onClick={fetchEvents}>Retry</Button>
+            </div>
           </div>
         ) : events.length === 0 ? (
           /* ── EMPTY STATE ── */
