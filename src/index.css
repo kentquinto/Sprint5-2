@@ -22,6 +22,12 @@
   }
 }
 
+/* Standard page/card entrance — use the class; only keep inline animation
+   styles where the delay is computed per element (e.g. staggered grids). */
+@utility animate-fade-in-up {
+  animation: fadeInUp 0.35s ease-out both;
+}
+
 @keyframes cloudDrift {
   from { transform: translateX(110vw); }
   to { transform: translateX(-400px); }

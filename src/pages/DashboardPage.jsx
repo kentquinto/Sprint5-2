@@ -1,15 +1,22 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useCallback } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import api from '../api/axios'
+import { getOrganizedEvents, getJoinedEvents } from '../api/me'
+import { getGames } from '../api/games'
+import { createEvent, updateEvent, deleteEvent } from '../api/events'
+import { getFormErrors } from '../api/errors'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
 import { AuthContext } from '../context/AuthContext'
-import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import { STATUS_COLORS } from '../utils/statusColors'
+import { capitalize, formatDate } from '../utils/format'
 import ConfirmModal from '../components/ConfirmModal'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import EventForm from '../components/EventForm'
-import Toast from '../components/Toast'
+import usePageTitle from '../hooks/usePageTitle'
+import useToast from '../hooks/useToast'
 
 const EMPTY_FORM = {
   title: '', description: '', location: '',
@@ -20,59 +27,67 @@ const EMPTY_FORM = {
 export default function DashboardPage() {
   const { user } = useContext(AuthContext)
   const location = useLocation()
+  const showToast = useToast()
+  usePageTitle('Dashboard')
 
   // ── STATE ──
   const [organizedEvents, setOrganizedEvents] = useState([])
   const [joinedEvents, setJoinedEvents] = useState([])
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   // create/edit form — editingId null means "creating", set means "editing that event"
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [formError, setFormError] = useState('')
+  const [formFieldErrors, setFormFieldErrors] = useState({})
   const [formLoading, setFormLoading] = useState(false)
 
   // delete confirmation modal — deleteId set means the modal is open for that event
   const [deleteId, setDeleteId] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
-  const [toast, setToast] = useState('')
 
   // ── DATA FETCHING ──
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const isOrganizer = user?.role === 'organizer'
+      const [organized, joined] = await Promise.all([
+        isOrganizer ? getOrganizedEvents() : Promise.resolve(null),
+        getJoinedEvents(),
+      ])
+      if (organized) setOrganizedEvents(organized)
+      setJoinedEvents(joined)
+    } catch {
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [user?.role])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
   useEffect(() => {
-    fetchAll()
-    api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
+    getGames().then(setGames).catch(() => {})
+  }, [])
+
+  // ── FORM HANDLERS ──
+  const openCreate = useCallback(() => {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    setFormError('')
+    setFormFieldErrors({})
+    setShowForm(true)
   }, [])
 
   // Navbar "Create Event" links here with openCreate state — open the form directly
   useEffect(() => {
     if (location.state?.openCreate && user?.role === 'organizer') openCreate()
-  }, [location.state, user?.role])
-
-  async function fetchAll() {
-    setLoading(true)
-    try {
-      const isOrganizer = user?.role === 'organizer'
-      const [orgRes, joinRes] = await Promise.all([
-        isOrganizer ? api.get('/me/organized-events') : Promise.resolve(null),
-        api.get('/me/joined-events'),
-      ])
-      if (orgRes) setOrganizedEvents(orgRes.data.data ?? orgRes.data)
-      setJoinedEvents(joinRes.data.data ?? joinRes.data)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // ── FORM HANDLERS ──
-  function openCreate() {
-    setEditingId(null)
-    setForm(EMPTY_FORM)
-    setFormError('')
-    setShowForm(true)
-  }
+  }, [location.state, user?.role, openCreate])
 
   function openEdit(event) {
     setEditingId(event.id)
@@ -86,6 +101,7 @@ export default function DashboardPage() {
       game_id: event.game?.id ?? '',
     })
     setFormError('')
+    setFormFieldErrors({})
     setShowForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -100,19 +116,22 @@ export default function DashboardPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setFormError('')
+    setFormFieldErrors({})
     setFormLoading(true)
     try {
       if (editingId) {
-        await api.put(`/events/${editingId}`, form)
-        setToast('Event updated successfully!')
+        await updateEvent(editingId, form)
+        showToast('Event updated successfully!')
       } else {
-        await api.post('/events', form)
-        setToast('Event created successfully!')
+        await createEvent(form)
+        showToast('Event created successfully!')
       }
       cancelForm()
       await fetchAll()
     } catch (err) {
-      setFormError(err.response?.data?.message ?? 'Something went wrong.')
+      const { fieldErrors: fields, message } = getFormErrors(err)
+      setFormFieldErrors(fields)
+      setFormError(message)
     } finally {
       setFormLoading(false)
     }
@@ -123,9 +142,9 @@ export default function DashboardPage() {
     setDeleteLoading(true)
     setDeleteError('')
     try {
-      await api.delete(`/events/${deleteId}`)
+      await deleteEvent(deleteId)
       setDeleteId(null)
-      setToast('Event deleted.')
+      showToast('Event deleted.')
       fetchAll()
     } catch (err) {
       setDeleteError(err.response?.data?.message ?? 'Could not delete event.')
@@ -134,7 +153,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
       {deleteId && (
         <ConfirmModal
           title="Delete Event?"
@@ -148,11 +167,9 @@ export default function DashboardPage() {
         />
       )}
 
-      <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} pageTitle="Dashboard" subtitle="Manage your events and track your activity" />
+      <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} subtitle="Manage your events and track your activity" />
 
-      <Toast message={toast} onDone={() => setToast('')} />
-
-      <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-6xl mx-auto px-6 py-8 animate-fade-in-up">
         {/* Create Event button — organizers only, hidden while the form is open */}
         {!showForm && user?.role === 'organizer' && (
           <div className="flex justify-end mb-6">
@@ -170,12 +187,24 @@ export default function DashboardPage() {
             games={games}
             editingId={editingId}
             formError={formError}
+            fieldErrors={formFieldErrors}
             formLoading={formLoading}
             onSubmit={handleSubmit}
             onCancel={cancelForm}
           />
         )}
 
+        {/* ── ERROR STATE ── shown in place of the lists when loading them failed */}
+        {loadError ? (
+          <div className="flex justify-center py-16">
+            <Card className="px-10 py-10 max-w-sm text-center">
+              <p className="font-cinzel font-bold text-ink text-sm mb-1">Could not load your events</p>
+              <p className="text-xs text-ink-soft/70 mb-4">Check your connection and try again.</p>
+              <Button size="sm" onClick={fetchAll}>Retry</Button>
+            </Card>
+          </div>
+        ) : (
+        <>
         {/* Event lists — left: events you organize (editable, organizers only), right: events you joined (read-only) */}
         <div className={user?.role === 'organizer'
           ? 'grid grid-cols-1 lg:grid-cols-2 gap-8'
@@ -257,7 +286,9 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        </>
+        )}
       </div>
-    </div>
+    </PageShell>
   )
 }

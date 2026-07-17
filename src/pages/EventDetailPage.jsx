@@ -1,20 +1,25 @@
-import { useState, useEffect, useContext } from 'react'
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect, useContext, useCallback } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
-import api from '../api/axios'
+import { getEvent, getParticipants, joinEvent, leaveEvent } from '../api/events'
 import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import { AuthContext } from '../context/AuthContext'
 import { getGameImage } from '../utils/gameImages'
-import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import { STATUS_COLORS } from '../utils/statusColors'
+import { capitalize, formatDate } from '../utils/format'
 import ConfirmModal from '../components/ConfirmModal'
-import Toast from '../components/Toast'
+import LoginPromptModal from '../components/LoginPromptModal'
+import PageShell from '../components/PageShell'
+import BackButton from '../components/BackButton'
 import PageScreen from '../components/PageScreen'
+import usePageTitle from '../hooks/usePageTitle'
+import useToast from '../hooks/useToast'
 
 export default function EventDetailPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const location = useLocation()
   const { token, user } = useContext(AuthContext)
+  const showToast = useToast()
 
   // ── STATE ──
   const [event, setEvent] = useState(null)
@@ -23,19 +28,16 @@ export default function EventDetailPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState('')
   const [pendingAction, setPendingAction] = useState(null) // 'join' | 'leave' | null — drives the confirm modal
-  const [toast, setToast] = useState('')
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
-  // ── DATA FETCHING ──
-  useEffect(() => { fetchAll() }, [id])
+  usePageTitle(event?.title)
 
-  async function fetchAll() {
+  // ── DATA FETCHING ──
+  const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const eventRes = await api.get(`/events/${id}`)
-      const eventData = eventRes.data.data ?? eventRes.data
+      const eventData = await getEvent(id)
       setEvent(eventData)
-      document.title = `${eventData.title} — TCG Manager`
     } catch {
       setError('Could not load event.')
       setLoading(false)
@@ -46,14 +48,15 @@ export default function EventDetailPage() {
     // just not the participants list.
     if (token) {
       try {
-        const participantsRes = await api.get(`/events/${id}/participants`)
-        setParticipants(participantsRes.data.data ?? participantsRes.data ?? [])
+        setParticipants(await getParticipants(id))
       } catch {
         setParticipants([])
       }
     }
     setLoading(false)
-  }
+  }, [id, token])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
 
   // ── HANDLERS ── join/leave, confirmed via the pending-action modal
   async function handleConfirm() {
@@ -61,11 +64,11 @@ export default function EventDetailPage() {
     setActionLoading(true)
     try {
       if (pendingAction === 'join') {
-        await api.post(`/events/${id}/participants`)
-        setToast('You have joined the event!')
+        await joinEvent(id)
+        showToast('You have joined the event!')
       } else {
-        await api.delete(`/events/${id}/participants`)
-        setToast('You have left the event.')
+        await leaveEvent(id)
+        showToast('You have left the event.')
       }
       setPendingAction(null)
       await fetchAll()
@@ -86,12 +89,10 @@ export default function EventDetailPage() {
   const isFull = event.participants_count >= event.max_players
   const canJoin = token && !isCreator && !isParticipant && !isFull &&
     (event.status === 'upcoming' || event.status === 'ongoing')
-  const gameImg = getGameImage(event.game?.id)
+  const gameImg = getGameImage(event.game?.name)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
-      <Toast message={toast} onDone={() => setToast('')} />
-
+    <PageShell>
       {pendingAction && (
         <ConfirmModal
           title={pendingAction === 'join' ? 'Join Event?' : 'Leave Event?'}
@@ -106,20 +107,10 @@ export default function EventDetailPage() {
         />
       )}
 
-      {showLoginPrompt && (
-        <ConfirmModal
-          title="Login Required"
-          message="You need to log in to view player profiles."
-          confirmLabel="Log In"
-          onConfirm={() => navigate('/login')}
-          onCancel={() => setShowLoginPrompt(false)}
-        />
-      )}
+      <LoginPromptModal open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
-      <div className="max-w-4xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
-        <button onClick={() => location.key !== 'default' ? navigate(-1) : navigate('/events')} className="text-sm text-white/80 hover:text-white mb-4 inline-block transition-colors cursor-pointer">
-          ← Back
-        </button>
+      <div className="max-w-4xl mx-auto px-6 py-8 animate-fade-in-up">
+        <BackButton className="mb-4" />
 
         {/* Game image banner */}
         <div className="relative rounded-2xl overflow-hidden mb-6 bg-gray-800 h-44 shadow-sm">
@@ -143,7 +134,7 @@ export default function EventDetailPage() {
         </div>
 
         {/* Event details + join/leave actions */}
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 mb-4 shadow-sm">
+        <Card className="p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${STATUS_COLORS[event.status]}`}>
@@ -208,10 +199,10 @@ export default function EventDetailPage() {
           {token && isParticipant && (
             <Button variant="danger" onClick={() => setPendingAction('leave')}>Leave Event</Button>
           )}
-        </div>
+        </Card>
 
         {/* Participants list — names link to profiles; requires login to view */}
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl p-6 shadow-sm">
+        <Card className="p-6">
           <p className="font-cinzel text-xs font-semibold text-ink-soft/60 uppercase tracking-wide mb-4">
             Participants ({event.participants_count})
           </p>
@@ -231,8 +222,8 @@ export default function EventDetailPage() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
-    </div>
+    </PageShell>
   )
 }

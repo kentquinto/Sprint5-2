@@ -1,19 +1,28 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { MapPin, Calendar, Coins, Users } from 'lucide-react'
-import api from '../api/axios'
+import { getEvents } from '../api/events'
+import { getGames } from '../api/games'
 import { getGameImage } from '../utils/gameImages'
-import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import { STATUS_COLORS } from '../utils/statusColors'
+import { capitalize, formatDate } from '../utils/format'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
+import usePageTitle from '../hooks/usePageTitle'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import { EventCardSkeleton } from '../components/ui/Skeleton'
 import { compactInputCls } from '../utils/formStyles'
 
 export default function EventsPage() {
+  usePageTitle('All Events')
+
   // ── STATE ──
   const [events, setEvents] = useState([])
   const [games, setGames] = useState([])
   const [meta, setMeta] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [activeGame, setActiveGame] = useState('')
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState('newest') // client-side only, doesn't hit the API
@@ -25,7 +34,8 @@ export default function EventsPage() {
 
   // ── DATA FETCHING ──
   useEffect(() => {
-    api.get('/games').then(res => setGames(res.data.data ?? res.data))
+    // Games only power the filter pills — if they fail, the page still works
+    getGames().then(setGames).catch(() => {})
   }, [])
 
   // Debounce search — fires 400ms after the user stops typing
@@ -34,12 +44,9 @@ export default function EventsPage() {
     return () => clearTimeout(t)
   }, [filters.search])
 
-  useEffect(() => {
-    fetchEvents()
-  }, [debouncedSearch, filters.date, filters.price, filters.status, activeGame, page])
-
-  async function fetchEvents() {
+  const fetchEvents = useCallback(async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const params = {}
       if (debouncedSearch) params.search = debouncedSearch
@@ -48,13 +55,19 @@ export default function EventsPage() {
       if (filters.status)  params.status = filters.status
       if (activeGame)      params.game   = activeGame
       if (page > 1)        params.page   = page
-      const res = await api.get('/events', { params })
-      setEvents(res.data.data ?? res.data)
-      setMeta(res.data.meta)
+      const { events: list, meta: pageMeta } = await getEvents(params)
+      setEvents(list)
+      setMeta(pageMeta)
+    } catch {
+      // Distinguish "request failed" from "no events" — showing the empty
+      // state on a network error would be lying to the user.
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }
+  }, [debouncedSearch, filters.date, filters.price, filters.status, activeGame, page])
+
+  useEffect(() => { fetchEvents() }, [fetchEvents])
 
   // ── HANDLERS ──
   function updateFilter(key, value) {
@@ -85,14 +98,14 @@ export default function EventsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
 
       <SkyBanner title="All Events" subtitle="Browse and join TCG tournaments near you!" />
 
-      <div className="max-w-7xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in-up">
 
         {/* ── FILTER BAR ── every control applies instantly; no submit step */}
-        <div className="mb-6 bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-4 py-2.5 shadow-sm">
+        <Card className="mb-6 px-4 py-2.5">
           <div className="flex gap-2 items-center overflow-x-auto">
             <input
               type="text"
@@ -152,6 +165,7 @@ export default function EventsPage() {
           <div className="flex gap-2 mt-2.5 overflow-x-auto pb-0.5">
             <button
               onClick={() => handleGamePill('')}
+              aria-pressed={activeGame === ''}
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                 activeGame === ''
                   ? 'bg-primary text-white border-primary'
@@ -164,6 +178,7 @@ export default function EventsPage() {
               <button
                 key={game.id}
                 onClick={() => handleGamePill(game.id)}
+                aria-pressed={activeGame === Number(game.id)}
                 className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                   activeGame === Number(game.id)
                     ? 'bg-primary text-white border-primary'
@@ -174,7 +189,7 @@ export default function EventsPage() {
               </button>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* ── EVENTS GRID ── */}
         {loading ? (
@@ -182,10 +197,19 @@ export default function EventsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Loading events">
             {Array.from({ length: 6 }, (_, i) => <EventCardSkeleton key={i} />)}
           </div>
+        ) : loadError ? (
+          /* ── ERROR STATE ── */
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <Card className="px-10 py-10 max-w-sm">
+              <p className="font-cinzel font-bold text-ink text-sm mb-1">Could not load events</p>
+              <p className="text-xs text-ink-soft/70 mb-4">Check your connection and try again.</p>
+              <Button size="sm" onClick={fetchEvents}>Retry</Button>
+            </Card>
+          </div>
         ) : events.length === 0 ? (
           /* ── EMPTY STATE ── */
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="bg-white/80 backdrop-blur-sm border border-white/60 rounded-2xl px-10 py-10 shadow-sm max-w-sm">
+            <Card className="px-10 py-10 max-w-sm">
               <p className="font-cinzel font-bold text-ink text-sm mb-1">No events found</p>
               <p className="text-xs text-ink-soft/70">
                 {hasActiveFilters ? 'Try adjusting or clearing your filters.' : 'No tournaments have been created yet.'}
@@ -198,12 +222,12 @@ export default function EventsPage() {
                   Clear filters
                 </button>
               )}
-            </div>
+            </Card>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedEvents.map((event, i) => {
-              const img = getGameImage(event.game?.id)
+              const img = getGameImage(event.game?.name)
               return (
               <Link
                 key={event.id}
@@ -248,6 +272,7 @@ export default function EventsPage() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
+                aria-current={p === meta.current_page ? 'page' : undefined}
                 className={`px-3 py-1.5 rounded-full text-sm border transition-colors cursor-pointer ${
                   p === meta.current_page
                     ? 'bg-primary text-white border-primary'
@@ -260,6 +285,6 @@ export default function EventsPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   )
 }

@@ -1,10 +1,13 @@
 import { useState, useEffect, useContext } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import api from '../api/axios'
+import { Link } from 'react-router-dom'
+import { getPlayerStats, getGameStats, getOrganizerStats } from '../api/stats'
 import { AuthContext } from '../context/AuthContext'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import PageScreen from '../components/PageScreen'
-import ConfirmModal from '../components/ConfirmModal'
+import LoginPromptModal from '../components/LoginPromptModal'
+import Card from '../components/ui/Card'
+import usePageTitle from '../hooks/usePageTitle'
 
 // One entry per leaderboard tab; drives both the fetch and the render below
 const TABLES = [
@@ -15,7 +18,7 @@ const TABLES = [
 
 export default function StatsPage() {
   const { token } = useContext(AuthContext)
-  const navigate = useNavigate()
+  usePageTitle('Leaderboard')
 
   // ── STATE ──
   const [data, setData] = useState({ players: [], games: [], organizers: [] })
@@ -27,15 +30,11 @@ export default function StatsPage() {
   // ── DATA FETCHING ── all three leaderboards loaded together up front
   useEffect(() => {
     Promise.all([
-      api.get('/stats/players'),
-      api.get('/stats/games'),
-      api.get('/stats/organizers'),
-    ]).then(([p, g, o]) => {
-      setData({
-        players:    p.data.data ?? p.data,
-        games:      g.data.data ?? g.data,
-        organizers: o.data.data ?? o.data,
-      })
+      getPlayerStats(),
+      getGameStats(),
+      getOrganizerStats(),
+    ]).then(([players, games, organizers]) => {
+      setData({ players, games, organizers })
     }).catch(() => setLoadError(true)).finally(() => setLoading(false))
   }, [])
 
@@ -50,21 +49,13 @@ export default function StatsPage() {
   const rows = data[key]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
 
-      {showLoginPrompt && (
-        <ConfirmModal
-          title="Login Required"
-          message="You need to log in to view player profiles."
-          confirmLabel="Log In"
-          onConfirm={() => navigate('/login')}
-          onCancel={() => setShowLoginPrompt(false)}
-        />
-      )}
+      <LoginPromptModal open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
 
       <SkyBanner title="Leaderboard" subtitle="Top players, organizers, and most active games" />
 
-      <div className="max-w-2xl mx-auto px-6 py-10" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-2xl mx-auto px-6 py-10 animate-fade-in-up">
 
         {/* Navigation */}
         <div className="flex items-center justify-between mb-6">
@@ -80,6 +71,8 @@ export default function StatsPage() {
               <button
                 key={t.key}
                 onClick={() => setActive(i)}
+                aria-label={t.title}
+                aria-pressed={i === active}
                 className="cursor-pointer transition-all"
                 style={{
                   width: i === active ? 24 : 8,
@@ -102,7 +95,7 @@ export default function StatsPage() {
         </div>
 
         {/* Active table */}
-        <div className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-2xl overflow-hidden shadow-sm">
+        <Card className="overflow-hidden">
           <div className="px-5 py-4 border-b border-mist flex items-center justify-between">
             <h2 className="font-cinzel font-bold text-ink text-sm uppercase tracking-wide">{title}</h2>
             <span className="text-xs text-ink-soft/50 font-cinzel">{active + 1} / 3</span>
@@ -136,8 +129,8 @@ export default function StatsPage() {
               <p className="text-sm text-ink-soft px-5 py-4">No data yet.</p>
             )}
           </div>
-        </div>
+        </Card>
       </div>
-    </div>
+    </PageShell>
   )
 }

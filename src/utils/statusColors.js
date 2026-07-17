@@ -4,8 +4,3 @@ export const STATUS_COLORS = {
   finished: 'bg-gray-100 text-gray-600',
   cancelled: 'bg-red-100 text-red-700',
 }
-
-export const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1)
-
-export const formatDate = dateStr =>
-  new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
