@@ -10,9 +10,12 @@ Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anth
 
 ## Links
 
+- 🚀 **Live demo:** [tcgmanager-opal.vercel.app](https://tcgmanager-opal.vercel.app/)
 - 🔗 **Frontend repository:** [Sprint5-2](https://github.com/kentquinto/Sprint5-2)
 - 🔗 **Backend repository (Laravel API):** [Sprint5-1](https://github.com/kentquinto/Sprint5-1)
 - 🤖 **AI used:** Claude Sonnet — [Anthropic](https://anthropic.com)
+
+> **Note:** the backend is hosted on Render's free tier, which spins down after inactivity. The first request after idle can take up to a minute to respond — subsequent requests are fast. If the live demo looks stuck on first load, give it a moment.
 
 ---
 
@@ -24,6 +27,7 @@ Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anth
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
 - [Docker](#docker)
+- [Deployment](#deployment)
 - [Project Structure](#project-structure)
 
 ---
@@ -204,6 +208,16 @@ The app will be available at `http://localhost:3000`.
 | `nginx.conf` | SPA routing + static asset caching |
 | `docker-compose.yml` | Single-command orchestration |
 | `.dockerignore` | Excludes `node_modules`, `.env`, `.git` from the image |
+
+---
+
+## Deployment
+
+The live demo runs on **Vercel** (frontend) + **Render** (Laravel API), independent of the Docker setup above.
+
+- **Frontend (Vercel):** the repo is connected directly — every push to `main` triggers a build. Vercel auto-detects the Vite framework; `vercel.json` pins the build/install/output settings explicitly so the deploy doesn't depend on dashboard configuration staying correct. It also rewrites all paths to `index.html`, which React Router needs — without it, a direct link or refresh on any route other than `/` (e.g. `/events`) 404s, since Vercel would otherwise look for a literal file at that path.
+- **Environment variable:** `VITE_API_URL` is set in the Vercel project settings to the deployed API's base URL. Vite bakes this into the JS bundle at build time, same as the Docker build arg described above.
+- **Backend (Render):** the Laravel API is hosted separately at [tcgmanager-api.onrender.com](https://tcgmanager-api.onrender.com). On the free tier it spins down after inactivity, so the first request after idle is slow (see the note under [Links](#links)).
 
 ---
 
