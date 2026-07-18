@@ -1,28 +1,9 @@
-import { useEffect } from 'react'
+import CloudLayer from './CloudLayer'
 
-const DEFAULT_CLOUDS = [
-  { src: '/images/items/cloud2.png', w: 180, t: 30, dur: '70s', delay: '-15s' },
-  { src: '/images/items/cloud1.png', w: 140, t: 10, dur: '50s', delay: '-5s'  },
-  { src: '/images/items/cloud4.png', w: 100, t: 60, dur: '45s', delay: '-30s' },
-  { src: '/images/items/cloud3.png', w: 160, t: 18, dur: '60s', delay: '-42s' },
-]
-
-export default function SkyBanner({ eyebrow, title, pageTitle, subtitle, clouds = DEFAULT_CLOUDS, height = 200 }) {
-  useEffect(() => {
-    document.title = `${pageTitle ?? title} — TCG Manager`
-  }, [title, pageTitle])
-
+export default function SkyBanner({ eyebrow, title, subtitle, height = 200 }) {
   return (
     <div className="relative overflow-hidden" style={{ height }}>
-      <img src="/images/items/sun.png" alt="" draggable={false}
-        className="absolute select-none pointer-events-none"
-        style={{ width: 64, top: 20, right: '6%' }} />
-
-      {clouds.map(({ src, w, t, dur, delay }, i) => (
-        <img key={i} src={src} alt="" draggable={false}
-          className="absolute select-none pointer-events-none"
-          style={{ width: w, top: t, animation: `cloudDrift ${dur} linear infinite`, animationDelay: delay }} />
-      ))}
+      <CloudLayer />
 
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
         {eyebrow && (

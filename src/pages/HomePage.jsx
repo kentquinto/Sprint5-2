@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
-import { useContext, useState, useEffect } from 'react'
+import { useContext, useState } from 'react'
 import { AuthContext } from '../context/AuthContext'
+import Button from '../components/ui/Button'
+import CloudLayer from '../components/CloudLayer'
+import usePageTitle from '../hooks/usePageTitle'
 
 // ─── SPRITE HELPER ──────────────────────────────────────────────────────────
 // Decorative image (clouds, trees, bushes, sun). pointer-events-none so it
@@ -78,7 +80,7 @@ export default function HomePage() {
 
   const [activeHouse, setActiveHouse] = useState(null) // index of open speech bubble, or null
 
-  useEffect(() => { document.title = 'TCG Manager' }, [])
+  usePageTitle()
 
   return (
     // Dark green base color visible below the ground strip
@@ -94,13 +96,9 @@ export default function HomePage() {
       {/* ── SKY ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100" />
 
-      {/* ── SUN ── */}
-      <Sprite src="/images/items/sun.png" style={{ width: 80, top: 28, right: '7%' }} />
-
-      {/* ── CLOUDS ── drift via the cloudDrift keyframe in index.css */}
-      {CLOUDS.map(({ src, w, t, dur, delay }, i) => (
-        <Sprite key={i} src={src} style={{ width: w, top: t, animation: `cloudDrift ${dur} linear infinite`, animationDelay: delay }} />
-      ))}
+      {/* ── SUN + CLOUDS ── scene-tuned positions; shadows below stay in sync
+          because they reuse the same dur/delay values */}
+      <CloudLayer clouds={CLOUDS} sun={{ width: 80, top: 28, right: '7%' }} />
 
       {/* ── WAVE ── blends the sky gradient into the ground below */}
       <svg className="absolute w-full select-none pointer-events-none" style={{ bottom: 108 }}
@@ -163,9 +161,9 @@ export default function HomePage() {
               style={{ bottom: '110%', left: '50%', width: 200, zIndex: 30,
                 animation: 'popIn 0.22s ease-out forwards' }}
             >
-              <div className="bg-white/90 backdrop-blur-sm border border-white/60 rounded-2xl p-4 shadow-xl">
-                <p className="font-cinzel font-bold text-[#0F172A] text-sm mb-1">{label}</p>
-                <p className="text-xs text-[#334155] leading-relaxed">{desc}</p>
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+                <p className="font-cinzel font-bold text-ink text-sm mb-1">{label}</p>
+                <p className="text-xs text-ink-soft leading-relaxed">{desc}</p>
               </div>
               {/* zero-size box with only top/left/right borders = CSS triangle arrow */}
               <div className="mx-auto" style={{
@@ -198,15 +196,13 @@ export default function HomePage() {
         </p>
         {/* Login button is hidden when the user is already logged in */}
         <div className="flex gap-4">
-          <Link to="/events"
-            className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-8 py-3 rounded-full font-bold text-sm transition-colors shadow-lg">
+          <Button to="/events" size="lg" className="shadow-lg">
             Browse Events
-          </Link>
+          </Button>
           {!token && (
-            <Link to="/login"
-              className="bg-white/20 hover:bg-white/30 text-white border-2 border-white/60 px-8 py-3 rounded-full font-bold text-sm transition-colors shadow-lg backdrop-blur-sm">
+            <Button to="/login" variant="glass" size="lg">
               Login
-            </Link>
+            </Button>
           )}
         </div>
       </div>

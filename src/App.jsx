@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import ErrorBoundary from './components/ErrorBoundary'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import GuestRoute from './components/GuestRoute'
@@ -16,8 +17,9 @@ import NotFoundPage from './pages/NotFoundPage'
 export default function App() {
   return (
     <BrowserRouter>
+      <ErrorBoundary>
       <Navbar />
-      <main className="min-h-screen bg-gray-50 text-gray-900">
+      <main className="min-h-screen">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/events" element={<EventsPage />} />
@@ -41,6 +43,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
+      </ErrorBoundary>
     </BrowserRouter>
   )
 }

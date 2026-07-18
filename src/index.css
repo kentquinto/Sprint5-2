@@ -2,6 +2,15 @@
 
 @theme {
   --font-cinzel: 'Cinzel', serif;
+
+  /* Brand palette — the single source of truth for colors.
+     Use these as Tailwind classes (bg-primary, text-ink, border-mist...) */
+  --color-primary: #2563EB;      /* main action blue */
+  --color-primary-deep: #1d4ed8; /* hover state of primary */
+  --color-ink: #0F172A;          /* headings / strong text */
+  --color-ink-soft: #334155;     /* body / secondary text */
+  --color-mist: #DCEEFF;         /* soft borders and dividers */
+  --color-sky-bright: #60A5FA;   /* hover borders / accents */
 }
 
 @layer base {
@@ -11,6 +20,12 @@
   h1, h2, h3 {
     font-family: var(--font-cinzel);
   }
+}
+
+/* Standard page/card entrance — use the class; only keep inline animation
+   styles where the delay is computed per element (e.g. staggered grids). */
+@utility animate-fade-in-up {
+  animation: fadeInUp 0.35s ease-out both;
 }
 
 @keyframes cloudDrift {

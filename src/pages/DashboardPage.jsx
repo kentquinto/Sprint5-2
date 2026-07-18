@@ -1,12 +1,22 @@
-import { useState, useEffect, useContext } from 'react'
-import { Link } from 'react-router-dom'
-import api from '../api/axios'
+import { useState, useEffect, useContext, useCallback } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Plus } from 'lucide-react'
+import { getOrganizedEvents, getJoinedEvents } from '../api/me'
+import { getGames } from '../api/games'
+import { createEvent, updateEvent, deleteEvent } from '../api/events'
+import { getFormErrors } from '../api/errors'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import { Skeleton } from '../components/ui/Skeleton'
 import { AuthContext } from '../context/AuthContext'
-import { STATUS_COLORS, capitalize, formatDate } from '../utils/statusColors'
+import { STATUS_COLORS } from '../utils/statusColors'
+import { capitalize, formatDate } from '../utils/format'
 import ConfirmModal from '../components/ConfirmModal'
+import PageShell from '../components/PageShell'
 import SkyBanner from '../components/SkyBanner'
 import EventForm from '../components/EventForm'
-import Toast from '../components/Toast'
+import usePageTitle from '../hooks/usePageTitle'
+import useToast from '../hooks/useToast'
 
 const EMPTY_FORM = {
   title: '', description: '', location: '',
@@ -16,54 +26,69 @@ const EMPTY_FORM = {
 
 export default function DashboardPage() {
   const { user } = useContext(AuthContext)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const showToast = useToast()
+  usePageTitle('Dashboard')
 
   // ── STATE ──
   const [organizedEvents, setOrganizedEvents] = useState([])
   const [joinedEvents, setJoinedEvents] = useState([])
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
   // create/edit form — editingId null means "creating", set means "editing that event"
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [formError, setFormError] = useState('')
+  const [formFieldErrors, setFormFieldErrors] = useState({})
   const [formLoading, setFormLoading] = useState(false)
 
   // delete confirmation modal — deleteId set means the modal is open for that event
   const [deleteId, setDeleteId] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
-  const [toast, setToast] = useState('')
 
   // ── DATA FETCHING ──
-  useEffect(() => {
-    fetchAll()
-    api.get('/games').then(res => setGames(res.data.data ?? res.data)).catch(() => {})
-  }, [])
-
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true)
+    setLoadError(false)
     try {
       const isOrganizer = user?.role === 'organizer'
-      const [orgRes, joinRes] = await Promise.all([
-        isOrganizer ? api.get('/me/organized-events') : Promise.resolve(null),
-        api.get('/me/joined-events'),
+      const [organized, joined] = await Promise.all([
+        isOrganizer ? getOrganizedEvents() : Promise.resolve(null),
+        getJoinedEvents(),
       ])
-      if (orgRes) setOrganizedEvents(orgRes.data.data ?? orgRes.data)
-      setJoinedEvents(joinRes.data.data ?? joinRes.data)
+      if (organized) setOrganizedEvents(organized)
+      setJoinedEvents(joined)
+    } catch {
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.role])
+
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  useEffect(() => {
+    getGames().then(setGames).catch(() => {})
+  }, [])
 
   // ── FORM HANDLERS ──
-  function openCreate() {
+  const openCreate = useCallback(() => {
     setEditingId(null)
     setForm(EMPTY_FORM)
     setFormError('')
+    setFormFieldErrors({})
     setShowForm(true)
-  }
+  }, [])
+
+  // Navbar "Create Event" links here with openCreate state — open the form directly
+  useEffect(() => {
+    if (location.state?.openCreate && user?.role === 'organizer') openCreate()
+  }, [location.state, user?.role, openCreate])
 
   function openEdit(event) {
     setEditingId(event.id)
@@ -77,6 +102,7 @@ export default function DashboardPage() {
       game_id: event.game?.id ?? '',
     })
     setFormError('')
+    setFormFieldErrors({})
     setShowForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -91,19 +117,22 @@ export default function DashboardPage() {
   async function handleSubmit(e) {
     e.preventDefault()
     setFormError('')
+    setFormFieldErrors({})
     setFormLoading(true)
     try {
       if (editingId) {
-        await api.put(`/events/${editingId}`, form)
-        setToast('Event updated successfully!')
+        await updateEvent(editingId, form)
+        showToast('Event updated successfully!')
       } else {
-        await api.post('/events', form)
-        setToast('Event created successfully!')
+        await createEvent(form)
+        showToast('Event created successfully!')
       }
       cancelForm()
       await fetchAll()
     } catch (err) {
-      setFormError(err.response?.data?.message ?? 'Something went wrong.')
+      const { fieldErrors: fields, message } = getFormErrors(err)
+      setFormFieldErrors(fields)
+      setFormError(message)
     } finally {
       setFormLoading(false)
     }
@@ -114,9 +143,9 @@ export default function DashboardPage() {
     setDeleteLoading(true)
     setDeleteError('')
     try {
-      await api.delete(`/events/${deleteId}`)
+      await deleteEvent(deleteId)
       setDeleteId(null)
-      setToast('Event deleted.')
+      showToast('Event deleted.')
       fetchAll()
     } catch (err) {
       setDeleteError(err.response?.data?.message ?? 'Could not delete event.')
@@ -125,7 +154,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-500 via-sky-300 to-sky-100">
+    <PageShell>
       {deleteId && (
         <ConfirmModal
           title="Delete Event?"
@@ -139,20 +168,15 @@ export default function DashboardPage() {
         />
       )}
 
-      <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} pageTitle="Dashboard" subtitle="Manage your events and track your activity" />
+      <SkyBanner eyebrow="Welcome back!" title={user?.name ?? ''} subtitle="Manage your events and track your activity" />
 
-      <Toast message={toast} onDone={() => setToast('')} />
-
-      <div className="max-w-6xl mx-auto px-6 py-8" style={{ animation: 'fadeInUp 0.35s ease-out both' }}>
+      <div className="max-w-6xl mx-auto px-6 py-8 animate-fade-in-up">
         {/* Create Event button — organizers only, hidden while the form is open */}
         {!showForm && user?.role === 'organizer' && (
           <div className="flex justify-end mb-6">
-            <button
-              onClick={openCreate}
-              className="bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-5 py-2 rounded-full text-sm font-bold transition-colors cursor-pointer shadow-sm"
-            >
-              + Create Event
-            </button>
+            <Button onClick={openCreate}>
+              <Plus size={16} aria-hidden="true" /> Create Event
+            </Button>
           </div>
         )}
 
@@ -164,12 +188,24 @@ export default function DashboardPage() {
             games={games}
             editingId={editingId}
             formError={formError}
+            fieldErrors={formFieldErrors}
             formLoading={formLoading}
             onSubmit={handleSubmit}
             onCancel={cancelForm}
           />
         )}
 
+        {/* ── ERROR STATE ── shown in place of the lists when loading them failed */}
+        {loadError ? (
+          <div className="flex justify-center py-16">
+            <Card className="px-10 py-10 max-w-sm text-center">
+              <p className="font-cinzel font-bold text-ink text-sm mb-1">Could not load your events</p>
+              <p className="text-xs text-ink-soft/70 mb-4">Check your connection and try again.</p>
+              <Button size="sm" onClick={fetchAll}>Retry</Button>
+            </Card>
+          </div>
+        ) : (
+        <>
         {/* Event lists — left: events you organize (editable, organizers only), right: events you joined (read-only) */}
         <div className={user?.role === 'organizer'
           ? 'grid grid-cols-1 lg:grid-cols-2 gap-8'
@@ -181,20 +217,24 @@ export default function DashboardPage() {
               Created Events <span className="text-white/40">({organizedEvents.length})</span>
             </h2>
             {loading ? (
-              <p className="text-sm text-white/70">Loading...</p>
+              <div className="space-y-3" aria-label="Loading events">
+                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl bg-white/50" />)}
+              </div>
             ) : organizedEvents.length === 0 ? (
               <p className="text-sm text-white/70">You haven't created any events yet.</p>
             ) : (
               <div className="space-y-3">
                 {organizedEvents.map(event => (
-                  <div key={event.id} className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm">
+                  <div key={event.id}
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    onKeyDown={e => { if (e.key === 'Enter') navigate(`/events/${event.id}`) }}
+                    className="bg-white/85 backdrop-blur-sm rounded-xl p-4 shadow-sm cursor-pointer hover:ring-1 hover:ring-sky-bright hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus-visible:ring-1 focus-visible:ring-sky-bright outline-none">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <Link to={`/events/${event.id}`}
-                          className="font-semibold text-[#0F172A] hover:text-[#2563EB] text-sm transition-colors">
-                          {event.title}
-                        </Link>
-                        <p className="text-xs text-[#334155]/70 mt-0.5">
+                        <p className="font-semibold text-ink text-sm">{event.title}</p>
+                        <p className="text-xs text-ink-soft/70 mt-0.5">
                           {event.game?.name} · {formatDate(event.date_time)}
                         </p>
                       </div>
@@ -203,14 +243,14 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <button onClick={() => openEdit(event)}
-                        className="text-xs border border-[#DCEEFF] text-[#2563EB] hover:bg-[#DCEEFF] px-3 py-1 rounded-full transition-colors cursor-pointer">
+                      <Button variant="primary-outline" size="sm"
+                        onClick={e => { e.stopPropagation(); openEdit(event) }}>
                         Edit
-                      </button>
-                      <button onClick={() => { setDeleteId(event.id); setDeleteError('') }}
-                        className="text-xs border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1 rounded-full transition-colors cursor-pointer">
+                      </Button>
+                      <Button variant="danger-outline" size="sm"
+                        onClick={e => { e.stopPropagation(); setDeleteId(event.id); setDeleteError('') }}>
                         Delete
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -224,18 +264,20 @@ export default function DashboardPage() {
               Joined Events <span className="text-white/40">({joinedEvents.length})</span>
             </h2>
             {loading ? (
-              <p className="text-sm text-white/70">Loading...</p>
+              <div className="space-y-3" aria-label="Loading events">
+                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl bg-white/50" />)}
+              </div>
             ) : joinedEvents.length === 0 ? (
               <p className="text-sm text-white/70">You haven't joined any events yet.</p>
             ) : (
               <div className="space-y-3">
                 {joinedEvents.map(event => (
                   <Link key={event.id} to={`/events/${event.id}`}
-                    className="block bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm hover:border-[#60A5FA] transition-colors">
+                    className="block bg-white/85 backdrop-blur-sm rounded-xl p-4 shadow-sm hover:ring-1 hover:ring-sky-bright hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-[#0F172A] text-sm">{event.title}</p>
-                        <p className="text-xs text-[#334155]/70 mt-0.5">
+                        <p className="font-semibold text-ink text-sm">{event.title}</p>
+                        <p className="text-xs text-ink-soft/70 mt-0.5">
                           {event.game?.name} · {formatDate(event.date_time)}
                         </p>
                       </div>
@@ -249,7 +291,9 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        </>
+        )}
       </div>
-    </div>
+    </PageShell>
   )
 }
