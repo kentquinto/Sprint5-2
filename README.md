@@ -34,7 +34,7 @@ Developed as part of **Sprint 5 — IT Academy Barcelona**, using **Claude (Anth
 Register and log in with a Bearer token stored in localStorage. Every account has a role — **Player** or **Organizer** — chosen at registration (defaults to Player) and returned on `/me`. Protected routes automatically redirect unauthenticated users to the login page. The cached session is validated against `/me` on app load, and any 401 from the API clears the session globally — protected pages then redirect to login through the router, while public pages simply drop to a logged-out state.
 
 ### Events
-Browse all events with real-time debounced search and filtering by date, price, status, and game. Results can be sorted by newest, oldest, cheapest, or most popular. Events display in a responsive card grid with game banner images, status badges, full indicators, and pagination.
+Browse all events with real-time debounced search and filtering by date, price, status, and game — every filter applies instantly. Results can be sorted by newest, oldest, cheapest, or most popular. Events display in a responsive card grid with game banner images, status badges, full indicators, and pagination. While loading, skeleton cards keep the layout stable; if the request fails, an error card with a Retry button appears instead of a misleading empty state.
 
 ### Event Detail
 View full event information including location, date, entry fee, and a capacity progress bar that changes colour as the event fills up. Authenticated users can join or leave events via a confirmation modal. Events show a "Full" badge and block joining when at capacity. The event creator can edit or delete their event directly from the Dashboard. The participants list requires login to view — logged-out visitors see a "Login to view participants" prompt instead.
@@ -51,8 +51,8 @@ Profile pages showing a player's organized and joined event counts, bio, country
 ### Profile Settings
 Edit personal information including name, country, bio, and favourite game. Changes reflect immediately in the navbar without a page reload. Includes a change-password form (`PUT /me/password`) with inline validation errors, and a Danger Zone for permanent account deletion (`DELETE /me`) — password-confirmed in a dialog, with an extra warning for organizers since their tournaments are deleted with them.
 
-### 404 Page
-Unknown routes render a custom 404 page with a link back to the homepage.
+### 404 Page & Error Handling
+Unknown routes render a custom 404 page with a link back to the homepage. An app-wide error boundary catches unexpected render crashes and shows a recoverable "Something went wrong" screen instead of a blank page. Validation errors (422) appear inline under the exact field that failed, consistently across every form.
 
 ### Mobile Responsive
 The full app is usable on mobile. The navbar collapses into an animated hamburger menu on small screens, and all pages adapt to narrow viewports.
@@ -75,7 +75,7 @@ The full app is usable on mobile. The navbar collapses into an animated hamburge
 
 ### Dashboard (Organizer view)
 ![Dashboard](public/images/screenshots/screenshot-dashboard.png)
-*Organizer's panel showing created (4) and joined (6) events with event counts, edit and delete controls. Players see a single centered column of joined events only, with no Create Event button.*
+*Organizer's panel showing created (5) and joined (7) events with event counts, edit and delete controls. Players see a single centered column of joined events only, with no Create Event button.*
 
 ### Create Event
 ![Create Event](public/images/screenshots/screenshot-create-event.png)
@@ -221,17 +221,26 @@ src/
 │   ├── players.js             # Public player profiles
 │   └── stats.js               # Leaderboard tables
 ├── components/
+│   ├── profile/
+│   │   ├── ChangePasswordForm.jsx  # Self-contained password change card
+│   │   ├── DangerZone.jsx          # Password-confirmed account deletion
+│   │   └── ProfileInfoForm.jsx     # Name / country / bio / favourite game form
 │   ├── ui/
 │   │   ├── Button.jsx         # Shared button — variants + sizes, renders <Link> when given `to`
-│   │   ├── Card.jsx           # Standard content surface
+│   │   ├── Card.jsx           # Standard content surface (default + danger variants)
+│   │   ├── Field.jsx          # Label + control + inline validation error in one
 │   │   ├── FieldError.jsx     # Inline validation message under inputs
 │   │   └── Skeleton.jsx       # Loading placeholders, incl. event-card skeleton
+│   ├── BackButton.jsx         # History-aware back navigation with deep-link fallback
+│   ├── CloudLayer.jsx         # Drifting clouds + sun, shared by banner/pages/home scene
 │   ├── ConfirmModal.jsx       # Accessible confirmation dialog (Escape, focus management)
+│   ├── ErrorBoundary.jsx      # Catches render crashes, shows a recoverable screen
 │   ├── EventForm.jsx          # Create / edit event form with field-level errors
 │   ├── GuestRoute.jsx         # Redirects logged-in users away from login/register
 │   ├── LoginPromptModal.jsx   # "Login required" prompt for guests
 │   ├── Navbar.jsx             # Responsive navbar with role-aware Create Event button
 │   ├── PageScreen.jsx         # Full-screen loading and error state
+│   ├── PageShell.jsx          # App-wide sky-gradient page background
 │   ├── ProtectedRoute.jsx     # Auth guard for private routes
 │   ├── SkyBanner.jsx          # Page hero banner
 │   ├── SkyPage.jsx            # Full-viewport sky background wrapper

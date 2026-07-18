@@ -32,7 +32,7 @@ export default function ConfirmModal({ title, message, error, confirmLabel, dang
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="bg-white/90 backdrop-blur-md border border-white/60 rounded-2xl shadow-xl w-full max-w-sm p-6"
+        className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl w-full max-w-sm p-6"
       >
         <h2 id={titleId} className="text-lg font-bold text-ink mb-2">{title}</h2>
         <p className="text-sm text-ink-soft mb-4">{message}</p>

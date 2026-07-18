@@ -232,7 +232,7 @@ export default function EventsPage() {
               <Link
                 key={event.id}
                 to={`/events/${event.id}`}
-                className="bg-white/85 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                className="bg-white/85 backdrop-blur-sm rounded-xl shadow-sm hover:ring-1 hover:ring-sky-bright hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
                 style={{ animation: 'fadeInUp 0.4s ease-out both', animationDelay: `${i * 0.07}s` }}
               >
                 <div className="relative h-20 bg-gray-800 overflow-hidden">

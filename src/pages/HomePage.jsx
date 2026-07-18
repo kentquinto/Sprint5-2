@@ -161,7 +161,7 @@ export default function HomePage() {
               style={{ bottom: '110%', left: '50%', width: 200, zIndex: 30,
                 animation: 'popIn 0.22s ease-out forwards' }}
             >
-              <div className="bg-white/90 backdrop-blur-sm border border-white/60 rounded-2xl p-4 shadow-xl">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
                 <p className="font-cinzel font-bold text-ink text-sm mb-1">{label}</p>
                 <p className="text-xs text-ink-soft leading-relaxed">{desc}</p>
               </div>

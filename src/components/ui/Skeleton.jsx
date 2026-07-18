@@ -6,7 +6,7 @@ export function Skeleton({ className = '' }) {
 // Placeholder matching the shape of an event card in the events grid.
 export function EventCardSkeleton() {
   return (
-    <div className="bg-white/85 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm overflow-hidden">
+    <div className="bg-white/85 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden">
       <Skeleton className="h-20 rounded-none" />
       <div className="p-3 space-y-2">
         <Skeleton className="h-4 w-16 rounded-full" />
