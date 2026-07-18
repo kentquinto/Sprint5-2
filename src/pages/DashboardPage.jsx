@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useCallback } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { getOrganizedEvents, getJoinedEvents } from '../api/me'
 import { getGames } from '../api/games'
@@ -27,6 +27,7 @@ const EMPTY_FORM = {
 export default function DashboardPage() {
   const { user } = useContext(AuthContext)
   const location = useLocation()
+  const navigate = useNavigate()
   const showToast = useToast()
   usePageTitle('Dashboard')
 
@@ -224,13 +225,15 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {organizedEvents.map(event => (
-                  <div key={event.id} className="bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm">
+                  <div key={event.id}
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    onKeyDown={e => { if (e.key === 'Enter') navigate(`/events/${event.id}`) }}
+                    className="bg-white/85 backdrop-blur-sm rounded-xl p-4 shadow-sm cursor-pointer hover:ring-1 hover:ring-sky-bright hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus-visible:ring-1 focus-visible:ring-sky-bright outline-none">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <Link to={`/events/${event.id}`}
-                          className="font-semibold text-ink hover:text-primary text-sm transition-colors">
-                          {event.title}
-                        </Link>
+                        <p className="font-semibold text-ink text-sm">{event.title}</p>
                         <p className="text-xs text-ink-soft/70 mt-0.5">
                           {event.game?.name} · {formatDate(event.date_time)}
                         </p>
@@ -240,10 +243,12 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <Button variant="primary-outline" size="sm" onClick={() => openEdit(event)}>
+                      <Button variant="primary-outline" size="sm"
+                        onClick={e => { e.stopPropagation(); openEdit(event) }}>
                         Edit
                       </Button>
-                      <Button variant="danger-outline" size="sm" onClick={() => { setDeleteId(event.id); setDeleteError('') }}>
+                      <Button variant="danger-outline" size="sm"
+                        onClick={e => { e.stopPropagation(); setDeleteId(event.id); setDeleteError('') }}>
                         Delete
                       </Button>
                     </div>
@@ -268,7 +273,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {joinedEvents.map(event => (
                   <Link key={event.id} to={`/events/${event.id}`}
-                    className="block bg-white/85 backdrop-blur-sm border border-white/60 rounded-xl p-4 shadow-sm hover:border-sky-bright transition-colors">
+                    className="block bg-white/85 backdrop-blur-sm rounded-xl p-4 shadow-sm hover:ring-1 hover:ring-sky-bright hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-ink text-sm">{event.title}</p>

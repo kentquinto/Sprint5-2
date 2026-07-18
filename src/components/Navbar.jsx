@@ -72,7 +72,7 @@ export default function Navbar() {
 
       {/* ── MOBILE MENU ── */}
       {open && (
-        <div className="md:hidden mt-3 bg-white/90 backdrop-blur-md border border-white/60 rounded-2xl shadow-xl p-4 flex flex-col gap-1">
+        <div className="md:hidden mt-3 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-4 flex flex-col gap-1">
           <Link to="/"          onClick={handleLink} className="px-3 py-2 rounded-xl text-sm font-medium text-ink hover:bg-mist/60 transition-colors">Home</Link>
           <Link to="/events"    onClick={handleLink} className="px-3 py-2 rounded-xl text-sm font-medium text-ink hover:bg-mist/60 transition-colors">Events</Link>
           <Link to="/stats"     onClick={handleLink} className="px-3 py-2 rounded-xl text-sm font-medium text-ink hover:bg-mist/60 transition-colors">Leaderboard</Link>
